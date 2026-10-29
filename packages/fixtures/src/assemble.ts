@@ -971,6 +971,8 @@ function buildLedger(rules: Rule[], insts: Institution[], findings: Finding[], v
   E.appendRow(rows, {
     at: "2026-09-15T00:00:00.000Z",
     actor: "rule_admin:synth",
+    officer: "DEMO-OFF-103",
+    model: null,
     action: "rulepack.loaded",
     entity: "rulepack",
     entityId: "aph-2024-27",
@@ -981,6 +983,8 @@ function buildLedger(rules: Rule[], insts: Institution[], findings: Finding[], v
     E.appendRow(rows, {
       at: mintiso(inst, 9),
       actor: "system:supervisor",
+      officer: null,
+      model: null,
       action: "run.completed",
       entity: "application",
       entityId: inst.id,
@@ -989,6 +993,8 @@ function buildLedger(rules: Rule[], insts: Institution[], findings: Finding[], v
     E.appendRow(rows, {
       at: mintiso(inst, 9),
       actor: "system:reporter",
+      officer: null,
+      model: null,
       action: "letter.drafted",
       entity: "application",
       entityId: inst.id,

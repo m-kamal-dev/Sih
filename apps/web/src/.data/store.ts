@@ -6,7 +6,7 @@
 import path from 'node:path';
 import fs from 'node:fs';
 import { assembleDataset, type Dataset } from '@evidencegraph/fixtures';
-import { loadRulePack, verifyChain, dailyDigest, tamperRow, appendRow, applyCorrection as applyFactCorrection } from '@evidencegraph/engine';
+import { resolveAiProvider, loadRulePack, verifyChain, dailyDigest, tamperRow, appendRow, applyCorrection as applyFactCorrection } from '@evidencegraph/engine';
 import { computeMetrics, computeTriage } from '@evidencegraph/engine';
 import { buildFactIndex, runRule, buildFinding } from '@evidencegraph/engine';
 import type {
@@ -25,6 +25,7 @@ import type {
   GraphEdge,
   GraphSubgraph,
 } from '@evidencegraph/domain';
+import { officerForActor } from '@evidencegraph/domain';
 import type { ConflictRow } from '@evidencegraph/engine';
 
 // ---- Typed Store Events (for Server-Sent Events) ----
@@ -92,6 +93,7 @@ interface StorePatch {
     reason: string;
     at: string;
     seq?: number;
+    model?: string | null;
   }>;
   corrections: Array<{
     factId: string;
@@ -99,13 +101,24 @@ interface StorePatch {
     officer: string;
     at: string;
     seq?: number;
+    model?: string | null;
   }>;
   tamperedRows: Array<{ seq: number; patch: Record<string, unknown> }>;
-  letterUpdates: Array<{ appId: string; body: string; updatedBy: string; updatedAt: string; seq?: number }>;
-  letterReleases: Array<{ appId: string; releasedBy: string; releasedAt: string; seq?: number }>;
+  letterUpdates: Array<{ appId: string; body: string; updatedBy: string; updatedAt: string; seq?: number; model?: string | null }>;
+  letterReleases: Array<{ appId: string; releasedBy: string; releasedAt: string; seq?: number; model?: string | null }>;
   publishedRules: Rule[];
-  rulePublishes: Array<{ ruleId: string; version: number; author: string; secondApprover: string; at: string; seq?: number }>;
+  rulePublishes: Array<{ ruleId: string; version: number; author: string; secondApprover: string; at: string; seq?: number; model?: string | null }>;
   idempotency: IdempotencyRecord[];
+}
+
+/** The AI model in use right now, recorded on every ledger entry (null in rules-only mode). */
+function currentModel(): string | null {
+  return resolveAiProvider(process.env)?.model ?? null;
+}
+
+/** Every ledger write goes through here so each row carries the acting demo officer and the model. */
+function appendLedger(input: { at: string; actor: string; action: string; entity: string; entityId: string; payload: Record<string, unknown>; model: string | null }): AuditRow {
+  return appendRow(_ledger!, { ...input, officer: officerForActor(input.actor)?.id ?? null });
 }
 
 function patchFilePath(): string {
@@ -284,9 +297,10 @@ function getDatasetInternal(): Dataset {
       if (!fact) continue;
       const replacement = _ds.facts.find((item) => item.id === fact.supersededBy);
       if (!replacement) continue;
-      appendRow(_ledger!, {
+      appendLedger({
         at: mutation.entry.at,
         actor: mutation.entry.officer,
+        model: mutation.entry.model ?? null,
         action: 'fact.corrected',
         entity: 'Fact',
         entityId: replacement.id,
@@ -298,9 +312,10 @@ function getDatasetInternal(): Dataset {
         },
       });
     } else if (mutation.kind === 'decision') {
-      appendRow(_ledger!, {
+      appendLedger({
         at: mutation.entry.at,
         actor: mutation.entry.actor,
+        model: mutation.entry.model ?? null,
         action: `finding.${mutation.entry.action}`,
         entity: 'Finding',
         entityId: mutation.entry.findingId,
@@ -312,27 +327,30 @@ function getDatasetInternal(): Dataset {
         },
       });
     } else if (mutation.kind === 'letter-update') {
-      appendRow(_ledger!, {
+      appendLedger({
         at: mutation.entry.updatedAt,
         actor: mutation.entry.updatedBy,
+        model: mutation.entry.model ?? null,
         action: 'letter.updated',
         entity: 'Letter',
         entityId: mutation.entry.appId,
         payload: { appId: mutation.entry.appId, updatedBy: mutation.entry.updatedBy },
       });
     } else if (mutation.kind === 'letter-release') {
-      appendRow(_ledger!, {
+      appendLedger({
         at: mutation.entry.releasedAt,
         actor: mutation.entry.releasedBy,
+        model: mutation.entry.model ?? null,
         action: 'letter.released',
         entity: 'Letter',
         entityId: mutation.entry.appId,
         payload: { appId: mutation.entry.appId, releasedBy: mutation.entry.releasedBy },
       });
     } else if (mutation.kind === 'rule-publish') {
-      appendRow(_ledger!, {
+      appendLedger({
         at: mutation.entry.at,
         actor: mutation.entry.author,
+        model: mutation.entry.model ?? null,
         action: 'rules.published',
         entity: 'Rule',
         entityId: mutation.entry.ruleId,
@@ -353,9 +371,10 @@ function getDatasetInternal(): Dataset {
     const replacementId = original?.supersededBy;
     if (!original || !replacementId || !_ds.facts.some((fact) => fact.id === replacementId)) continue;
     if (_ledger!.some((row) => row.action === 'fact.corrected' && row.entityId === replacementId)) continue;
-    appendRow(_ledger!, {
+    appendLedger({
       at: correction.at,
       actor: correction.officer,
+      model: correction.model ?? null,
       action: 'fact.corrected',
       entity: 'Fact',
       entityId: replacementId,
@@ -375,9 +394,10 @@ function getDatasetInternal(): Dataset {
       : _ds.facts.find((fact) => fact.id === record.fact?.supersededBy);
     if (!replacement || !original) continue;
     if (_ledger!.some((row) => row.action === 'fact.corrected' && row.entityId === replacement.id)) continue;
-    appendRow(_ledger!, {
+    appendLedger({
       at: replacement.recordedAt,
       actor: replacement.extractor.replace(/^human:/, ''),
+      model: null,
       action: 'fact.corrected',
       entity: 'Fact',
       entityId: replacement.id,
@@ -702,16 +722,18 @@ export function applyDecision(
   (finding as Record<string, unknown>)['decidedAt'] = new Date().toISOString();
   (finding as Record<string, unknown>)['decisionReason'] = reason;
 
-  const row = appendRow(_ledger!, {
+  const model = currentModel();
+  const row = appendLedger({
     at: new Date().toISOString(),
     actor,
+    model,
     action: `finding.${action}`,
     entity: 'Finding',
     entityId: findingId,
     payload: { appId, findingId, action, reason },
   });
 
-  patch.decisions.push({ appId, findingId, action, actor, reason, at: row.at, seq: row.seq });
+  patch.decisions.push({ appId, findingId, action, actor, reason, at: row.at, seq: row.seq, model });
   if (idempotencyKey) {
     patch.idempotency.push({ key: idempotencyKey, operation, fingerprint, kind: 'decision', row });
   }
@@ -765,9 +787,11 @@ export function applyCorrection(
   ds.facts.push(replacement);
   recomputeDependentFindings(appId, fact.key, at, replacement.id);
 
-  const row = appendRow(_ledger!, {
+  const model = currentModel();
+  const row = appendLedger({
     at,
     actor: officer,
+    model,
     action: 'fact.corrected',
     entity: 'Fact',
     entityId: replacement.id,
@@ -786,6 +810,7 @@ export function applyCorrection(
     officer,
     at,
     seq: row.seq,
+    model,
   });
   savePatch(patch);
   _patch = patch;
@@ -927,9 +952,11 @@ export function releaseLetter(appId: string, releasedBy: string): LetterDraft {
   (letter as Record<string, unknown>)['releasedBy'] = releasedBy;
   (letter as Record<string, unknown>)['releasedAt'] = releasedAt;
 
-  const row = appendRow(_ledger!, {
+  const model = currentModel();
+  const row = appendLedger({
     at: releasedAt,
     actor: releasedBy,
+    model,
     action: 'letter.released',
     entity: 'Letter',
     entityId: appId,
@@ -937,7 +964,7 @@ export function releaseLetter(appId: string, releasedBy: string): LetterDraft {
   });
 
   const p = loadPatch();
-  p.letterReleases.push({ appId, releasedBy, releasedAt, seq: row.seq });
+  p.letterReleases.push({ appId, releasedBy, releasedAt, seq: row.seq, model });
   savePatch(p);
 
   _datasetVersion++;

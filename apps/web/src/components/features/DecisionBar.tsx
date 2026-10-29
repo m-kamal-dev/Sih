@@ -3,6 +3,8 @@ import { useState } from 'react';
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 import type { Finding } from '@evidencegraph/domain';
 import { useRoleStore } from '@/store/role-store';
+import { DEMO_OFFICERS, type AuditRow } from '@evidencegraph/domain';
+import { OfficerTag } from '@/components/atoms/OfficerTag';
 import { FindingChip } from '@/components/atoms/FindingChip';
 import { Spinner } from '@/components/atoms/Spinner';
 import { CheckCircle, XCircle, ArrowUpCircle } from 'lucide-react';
@@ -37,10 +39,11 @@ export function DecisionBar({ appId }: DecisionBarProps) {
         const err = await res.json() as { error: string };
         throw new Error(err.error);
       }
-      return res.json() as Promise<unknown>;
+      return res.json() as Promise<{ ledgerRow?: AuditRow }>;
     },
-    onSuccess: (_data, action) => {
-      setLastResult(`Decision recorded: ${action}`);
+    onSuccess: (data, action) => {
+      const row = data.ledgerRow;
+      setLastResult(`Decision recorded: ${action}${row ? ` · ledger entry #${row.seq} · AI model: ${row.model ?? 'rules only'}` : ''}`);
       setReason('');
       setSelectedFindingId(null);
       void queryClient.invalidateQueries({ queryKey: ['findings', appId] });
@@ -95,6 +98,10 @@ export function DecisionBar({ appId }: DecisionBarProps) {
       {/* Right: action panel */}
       <div style={{ width: 260, borderLeft: '1px solid var(--color-border)', padding: 16, display: 'flex', flexDirection: 'column', gap: 12 }}>
         <div style={{ fontSize: 11, fontWeight: 600, color: 'var(--color-text-muted)', textTransform: 'uppercase', letterSpacing: '0.06em' }}>Decision</div>
+        <div style={{ fontSize: 12, padding: 10, borderRadius: 10, background: 'var(--color-raised)', border: '1px solid var(--color-border)' }}>
+          <div style={{ color: 'var(--color-text-muted)', marginBottom: 4 }}>Deciding as</div>
+          <OfficerTag officerId={DEMO_OFFICERS.find((o) => o.role === role)?.id ?? null} />
+        </div>
         <textarea
           value={reason}
           onChange={(e) => setReason(e.target.value)}

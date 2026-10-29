@@ -24,11 +24,11 @@ export const GENESIS_HASH = "0".repeat(64);
 /** Append a row to the chain. Mutates `rows` in place and returns the new row. */
 export function appendRow(
   rows: AuditRow[],
-  input: { at: string; actor: string; action: string; entity: string; entityId: string; payload: Record<string, unknown> },
+  input: { at: string; actor: string; action: string; entity: string; entityId: string; payload: Record<string, unknown>; officer: string | null; model: string | null },
 ): AuditRow {
   const seq = (rows[rows.length - 1]?.seq ?? 0) + 1;
   const prevHash = rows[rows.length - 1]?.hash ?? GENESIS_HASH;
-  const partial = { at: input.at, actor: input.actor, action: input.action, entity: input.entity, entityId: input.entityId, payload: input.payload };
+  const partial = { at: input.at, actor: input.actor, action: input.action, entity: input.entity, entityId: input.entityId, payload: input.payload, officer: input.officer, model: input.model };
   const hash = rowHash(prevHash, { seq, ...partial });
   const row: AuditRow = { seq, ...partial, prevHash, hash };
   rows.push(row);

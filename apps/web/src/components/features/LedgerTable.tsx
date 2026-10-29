@@ -2,6 +2,7 @@
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 import { useState, useEffect } from 'react';
 import type { AuditRow } from '@evidencegraph/domain';
+import { OfficerTag } from '@/components/atoms/OfficerTag';
 import { useRoleStore } from '@/store/role-store';
 import { Spinner } from '@/components/atoms/Spinner';
 import { CopyButton } from '@/components/atoms/CopyButton';
@@ -98,7 +99,7 @@ export function LedgerTable() {
         <table style={{ width: '100%', borderCollapse: 'collapse', fontSize: 12 }}>
           <thead>
             <tr style={{ background: 'var(--color-raised)' }}>
-              {['#', 'At', 'Actor', 'Action', 'Entity', 'Hash', 'Demo Tamper'].map((h) => (
+              {['#', 'At', 'Officer', 'AI model', 'Action', 'Entity', 'Hash', 'Demo tamper'].map((h) => (
                 <th key={h} style={{ padding: '8px 12px', textAlign: 'left', fontSize: 11, fontWeight: 600, color: 'var(--color-text-muted)', textTransform: 'uppercase', letterSpacing: '0.06em', borderBottom: '1px solid var(--color-border)', whiteSpace: 'nowrap' }}>{h}</th>
               ))}
             </tr>
@@ -121,7 +122,8 @@ export function LedgerTable() {
                 >
                   <td style={{ padding: '8px 12px', fontFamily: 'var(--font-mono)', color: 'var(--color-text-muted)' }}>{row.seq}</td>
                   <td style={{ padding: '8px 12px' }}><Timestamp iso={row.at} mode="datetime" /></td>
-                  <td style={{ padding: '8px 12px', color: 'var(--color-text)' }}>{row.actor}</td>
+                  <td style={{ padding: '8px 12px' }}><OfficerTag officerId={row.officer} actor={row.actor} /></td>
+                  <td style={{ padding: '8px 12px', fontFamily: 'var(--font-mono)', color: 'var(--color-text-muted)' }}>{row.model ?? 'rules only'}</td>
                   <td style={{ padding: '8px 12px', color: 'var(--color-text)' }}>{row.action}</td>
                   <td style={{ padding: '8px 12px', color: 'var(--color-text-muted)' }}>{row.entity} · {row.entityId}</td>
                   <td style={{ padding: '8px 12px' }}>

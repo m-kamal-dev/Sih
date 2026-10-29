@@ -273,10 +273,36 @@ export const AuditRow = z.object({
   entity: z.string(),
   entityId: z.string(),
   payload: z.record(z.unknown()),
+  /** Demo officer id who acted (null for system entries). Part of the hash. */
+  officer: z.string().nullable(),
+  /** AI model in use when the entry was written (null in rules-only mode). Part of the hash. */
+  model: z.string().nullable(),
   prevHash: z.string(),
   hash: z.string(),
 });
 export type AuditRow = z.infer<typeof AuditRow>;
+
+/* ---------------- Demo officers (demo identity, not real people) ---------------- */
+
+export type DemoOfficer = { id: string; name: string; designation: string; region: string; role: Exclude<Role, 'applicant'> };
+
+/** Four synthetic officers, one per internal role. Shown with a "demo identity" label everywhere. */
+export const DEMO_OFFICERS: readonly DemoOfficer[] = [
+  { id: 'DEMO-OFF-101', name: 'Ananya Rao', designation: 'Scrutiny Officer', region: 'South-Western Region', role: 'scrutiny_officer' },
+  { id: 'DEMO-OFF-102', name: 'Vikram Sethi', designation: 'Senior Reviewer', region: 'Northern Region', role: 'senior_reviewer' },
+  { id: 'DEMO-OFF-103', name: 'Meera Iyer', designation: 'Rules Administrator', region: 'Southern Region', role: 'rule_admin' },
+  { id: 'DEMO-OFF-104', name: 'Arjun Das', designation: 'Audit Officer', region: 'Eastern Region', role: 'auditor' },
+];
+
+export function officerById(id: string | null | undefined): DemoOfficer | null {
+  return DEMO_OFFICERS.find((o) => o.id === id) ?? null;
+}
+
+/** The demo officer behind an actor string such as "senior_reviewer" or "rule_admin:synth"; null for system actors. */
+export function officerForActor(actor: string): DemoOfficer | null {
+  const role = actor.split(':')[0];
+  return DEMO_OFFICERS.find((o) => o.role === role || o.id === actor) ?? null;
+}
 
 /* ---------------- Rules (§08 YAML, parsed shape) ---------------- */
 

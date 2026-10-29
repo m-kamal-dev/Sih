@@ -5,7 +5,7 @@ Gate commands (pnpm.exe is blocked by Windows App Control on this machine, so us
 
 - [x] 0. Typecheck/lint/test green; removed deprecated `baseUrl` (tsconfig editor error)
 - [x] 1. AI provider interface (packages/engine/src/aiprovider.ts), Ollama hosted default, Anthropic and other providers removed, verbatim grounding + verdict rejection in reader, status pill, .env.example
-- [ ] 2. Four named demo officers; officer + model in every ledger entry; shown in ledger + decision ("demo identity")
+- [x] 2. Four named demo officers; officer + model in every ledger entry; shown in ledger + decision ("demo identity")
 - [x] 3. Design system (Iris tokens, dark-first, glass), Motion only (LazyMotion), Reduce effects + prefers-reduced-motion
 - [x] 4. Landing "/" (canvas hero, story, scan demo, real counters, guardrails, CTA)
 - [x] 5. /analyze restyle, queue + case overview restyle

@@ -12,6 +12,8 @@ function makeLedger(n = 5): AuditRow[] {
       entity: "application",
       entityId: `INTK-2026-020${i}`,
       payload: { decision: "more_info", letterId: `ltr_${i}` },
+      officer: "DEMO-OFF-101",
+      model: i % 2 ? "gpt-oss:120b" : null,
     });
   }
   return rows;
@@ -33,6 +35,16 @@ describe("hash-chained audit ledger", () => {
     expect(res.brokenAt).toBe(3);
     // Undo: restoring the honest payload makes the chain verify again —
     // the demo "restore baseline" action re-appends, never rewrites history.
+  });
+
+  it("the acting officer and the model are part of the hash", () => {
+    const rows = makeLedger(3);
+    expect(rows[0]).toMatchObject({ officer: "DEMO-OFF-101", model: "gpt-oss:120b" });
+    rows[1]!.officer = "DEMO-OFF-104";
+    expect(verifyChain(rows).brokenAt).toBe(2);
+    const other = makeLedger(3);
+    other[2]!.model = "some-other-model";
+    expect(verifyChain(other).brokenAt).toBe(3);
   });
 
   it("canonical JSON is stable and key-ordered", () => {
