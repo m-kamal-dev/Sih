@@ -3,6 +3,7 @@
  * expression evaluator, map outcomes to findings, and run every rule's
  * `tests:` block. A rule without tests fails the build.
  */
+import { EMBEDDED_RULE_PACK } from "./rulepack.generated.js";
 import * as fs from "node:fs";
 import * as path from "node:path";
 import YAML from "yaml";
@@ -144,10 +145,20 @@ export function loadRulePack(dir: string): Rule[] {
     .filter((f) => f.endsWith(".yaml") || f.endsWith(".yml"))
     .sort();
   if (files.length === 0) throw new RuleLoadError(`no YAML rules found in ${dir}`);
-  const rules: Rule[] = [];
-  for (const f of files) {
-    rules.push(parseRuleYaml(fs.readFileSync(path.join(dir, f), "utf8"), path.join(dir, f)));
-  }
+  return rulesFromSources(files.map((f) => ({ file: path.join(dir, f), yaml: fs.readFileSync(path.join(dir, f), "utf8") })));
+}
+
+/**
+ * The rule pack compiled into the engine (scripts/embed-rules.mjs), for hosts
+ * that cannot read rules/ from disk. Validated exactly like loadRulePack.
+ */
+export function loadEmbeddedRulePack(): Rule[] {
+  if (EMBEDDED_RULE_PACK.length === 0) throw new RuleLoadError("embedded rule pack is empty");
+  return rulesFromSources(EMBEDDED_RULE_PACK.map((e) => ({ file: `embedded:${e.file}`, yaml: e.yaml })));
+}
+
+function rulesFromSources(sources: { file: string; yaml: string }[]): Rule[] {
+  const rules = sources.map((s) => parseRuleYaml(s.yaml, s.file));
   // Unique ids across the pack.
   const seen = new Map<string, number>();
   for (const r of rules) {

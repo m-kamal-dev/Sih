@@ -22,3 +22,9 @@ Gate commands (pnpm.exe is blocked by Windows App Control on this machine, so us
 - [x] Plain language: rule titles + "APH reference pending", ledger action labels, document/fact labels, metric units
 - [x] Polish: ambient accent glow, card highlights, button sheen, unified page headers
 - [x] e2e: 38/38 on production build (E2E_BASE_URL lets it run on another port)
+
+## Round 3 (deployability)
+- [x] Rule pack embedded in the engine (scripts/embed-rules.mjs); drift test keeps it equal to rules/ on disk
+- [x] Simulated serverless (rules/ folder hidden): 25 routes + APIs, 0 failures
+- [x] Removed dangerouslyAllowAllBuilds (pnpm 10 refused to install with it); lockfile verified with pnpm 10 --frozen-lockfile
+- [ ] Not verified: an actual Vercel/Render deploy (needs your account)

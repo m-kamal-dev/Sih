@@ -6,7 +6,7 @@
 import path from 'node:path';
 import fs from 'node:fs';
 import { assembleDataset, type Dataset } from '@evidencegraph/fixtures';
-import { resolveAiProvider, loadRulePack, verifyChain, dailyDigest, tamperRow, appendRow, applyCorrection as applyFactCorrection } from '@evidencegraph/engine';
+import { resolveAiProvider, loadRulePack, loadEmbeddedRulePack, verifyChain, dailyDigest, tamperRow, appendRow, applyCorrection as applyFactCorrection } from '@evidencegraph/engine';
 import { computeMetrics, computeTriage } from '@evidencegraph/engine';
 import { buildFactIndex, runRule, buildFinding } from '@evidencegraph/engine';
 import type {
@@ -169,6 +169,11 @@ export function getDatasetVersion(): number {
   return _datasetVersion;
 }
 
+/** Rules from disk when the rules/ folder is present (local edits apply live), otherwise the copy compiled into the engine. */
+function loadRules(dir: string): ReturnType<typeof loadRulePack> {
+  return fs.existsSync(dir) ? loadRulePack(dir) : loadEmbeddedRulePack();
+}
+
 function getRulesDir(): string {
   if (process.env['RULES_DIR']) {
     const custom = path.resolve(process.cwd(), process.env['RULES_DIR']);
@@ -194,7 +199,7 @@ function getDatasetInternal(): Dataset {
 
   _patch = loadPatch();
   const rulesDir = getRulesDir();
-  const rules = _patch.publishedRules.length > 0 ? _patch.publishedRules : loadRulePack(rulesDir);
+  const rules = _patch.publishedRules.length > 0 ? _patch.publishedRules : loadRules(rulesDir);
   _ds = assembleDataset(rules);
   // The ledger is reconstructed from the persisted mutation patch below. Keep
   // it as a live array before replaying mutations so appendRow can safely
@@ -236,7 +241,7 @@ function getDatasetInternal(): Dataset {
     }
   }
   const dsRulesDir = getRulesDir();
-  const dsRules = _patch.publishedRules.length > 0 ? _patch.publishedRules : loadRulePack(dsRulesDir);
+  const dsRules = _patch.publishedRules.length > 0 ? _patch.publishedRules : loadRules(dsRulesDir);
   _ds = assembleDataset(dsRules);
   // Seed the chain with the dataset's genesis rows (rule pack loaded, runs completed,
   // letters drafted); persisted mutations are replayed on top of them below.

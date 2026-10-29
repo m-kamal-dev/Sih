@@ -24,9 +24,13 @@ const nextConfig: NextConfig = {
   transpilePackages: ['@evidencegraph/domain', '@evidencegraph/engine', '@evidencegraph/fixtures'],
   serverExternalPackages: ['yaml'],
   outputFileTracingRoot: path.join(__dirname, '..', '..'),
+  // Rule YAML is read from disk at runtime by API routes AND server-rendered pages,
+  // so every route ships it (serverless hosts only include traced files).
   outputFileTracingIncludes: {
-    '/api/**': ['../../rules/aph-2024-27/**'],
+    '/**': ['../../rules/aph-2024-27/**'],
   },
+  // NEXT_STANDALONE=1 builds a self-contained server (Docker/Render, and the deploy simulation test).
+  ...(process.env.NEXT_STANDALONE ? { output: 'standalone' as const } : {}),
   async headers() {
     return [
       {

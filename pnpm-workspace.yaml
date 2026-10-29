@@ -2,8 +2,6 @@ packages:
   - "apps/web"
   - "packages/*"
 
-dangerouslyAllowAllBuilds: true
-
 onlyBuiltDependencies:
   - esbuild
   - unrs-resolver

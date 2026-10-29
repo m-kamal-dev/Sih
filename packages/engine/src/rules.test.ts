@@ -1,8 +1,10 @@
 import { describe, expect, it } from "vitest";
+import * as fs from "node:fs";
 import * as path from "node:path";
+import { EMBEDDED_RULE_PACK } from "./rulepack.generated.js";
 import { fileURLToPath } from "node:url";
 const RULE_DIR = path.resolve(path.dirname(fileURLToPath(import.meta.url)), "../../../rules/aph-2024-27");
-import { RuleLoadError, loadRulePack, parseRuleYaml, stringifyRuleYaml, runRule, runRuleTests, assertRuleIsValid, buildFactIndex, type FactIndex } from "./rules.js";
+import { RuleLoadError, loadRulePack, loadEmbeddedRulePack, parseRuleYaml, stringifyRuleYaml, runRule, runRuleTests, assertRuleIsValid, buildFactIndex, type FactIndex } from "./rules.js";
 import type { Fact, Rule } from "@evidencegraph/domain";
 
 describe("APH 2024-27 rule pack", () => {
@@ -172,5 +174,19 @@ describe("rule loaders guard rails", () => {
 
   it("malformed rule structures return a validation error instead of an internal exception", () => {
     expect(() => parseRuleYaml("id: broken\nversion: 1\ninputs: []\nassert: 'true'\ntests: []\n")).toThrow(RuleLoadError);
+  });
+});
+
+describe("embedded rule pack (used where rules/ is not on disk, e.g. serverless hosts)", () => {
+  it("matches rules/ on disk file-for-file; run `node scripts/embed-rules.mjs` after editing the YAML", () => {
+    const onDisk = fs.readdirSync(RULE_DIR).filter((f) => f.endsWith(".yaml") || f.endsWith(".yml")).sort();
+    expect(EMBEDDED_RULE_PACK.map((e) => e.file)).toEqual(onDisk);
+    for (const e of EMBEDDED_RULE_PACK) {
+      expect(e.yaml, e.file).toBe(fs.readFileSync(path.join(RULE_DIR, e.file), "utf8").replace(/\r\n/g, "\n"));
+    }
+  });
+
+  it("parses to the same rules as the directory", () => {
+    expect(loadEmbeddedRulePack()).toEqual(loadRulePack(RULE_DIR));
   });
 });
