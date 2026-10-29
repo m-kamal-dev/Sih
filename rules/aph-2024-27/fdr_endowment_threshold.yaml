@@ -1,0 +1,30 @@
+# Threshold rule (rule type 3). The 1,500,000 INR floor is a fixtured demo
+# constant; the APH-mandated amount is [fill in: APH 2024-27 threshold] — do
+# not invent the clause figure, keep the marker until it is confirmed.
+id: fdr_endowment_threshold
+version: 1
+aph_ref: "[fill in: APH 2024-27 clause — endowment / FDR floor]"
+applies_to:
+  categories: [EOA, INTAKE_INCREASE, NEW_PROGRAMME]
+  sessions: ["2026-27"]
+inputs:
+  - fact: fdr.amount
+    min_confidence: 0.95
+assert: num(fdr.amount) >= 1500000
+on_fail:
+  class: validity_gap
+  severity: high
+  message: 'FDR of {fdr.amount} is below the [fill in: APH floor amount] endowment floor.'
+on_insufficient_evidence:
+  route: manual_queue
+  message: 'FDR amount unreadable — routed to the manual queue.'
+tests:
+  - name: above the floor
+    facts: { "fdr.amount": "2,500,000" }
+    expect: pass
+  - name: exactly at the floor
+    facts: { "fdr.amount": "1500000" }
+    expect: pass
+  - name: below the floor
+    facts: { "fdr.amount": "12,00,000" }
+    expect: fail

@@ -1,0 +1,45 @@
+# Validity rule (rule type 2) + cross-document check. Two things can be wrong:
+# the document's own date is tampered (differs from the issuer record), or the
+# NOC has genuinely expired (record date before the session start).
+id: fire_noc_validity
+version: 1
+aph_ref: "[fill in: APH 2024-27 clause — fire safety NOC validity]"
+applies_to:
+  categories: [EOA, INTAKE_INCREASE, NEW_PROGRAMME]
+  sessions: ["2026-27"]
+inputs:
+  # min_confidence >= the central per-field-type threshold (confidence.ts):
+  # fire_noc.valid_until is a date field (0.85), the record comparison keys too.
+  - fact: fire_noc.valid_until
+    min_confidence: 0.85
+  - fact: fire_noc.record_valid_until
+    min_confidence: 0.90
+  - fact: session.start_date
+    min_confidence: 0.95
+assert: fire_noc.valid_until == fire_noc.record_valid_until && fire_noc.record_valid_until >= session.start_date
+on_fail:
+  class: validity_gap
+  severity: high
+  message: 'Fire NOC shows valid until {fire_noc.valid_until}; the fire department record says {fire_noc.record_valid_until} and the session starts {session.start_date}.'
+on_insufficient_evidence:
+  route: manual_queue
+  message: 'Fire NOC or issuer record unreadable/offline — routed to the manual queue for verification.'
+tests:
+  - name: valid through session start
+    facts:
+      fire_noc.valid_until: "2027-06-30"
+      fire_noc.record_valid_until: "2027-06-30"
+      session.start_date: "2026-08-01"
+    expect: pass
+  - name: document date edited against issuer record
+    facts:
+      fire_noc.valid_until: "2027-03-15"
+      fire_noc.record_valid_until: "2026-07-10"
+      session.start_date: "2026-08-01"
+    expect: fail
+  - name: genuinely expired NOC
+    facts:
+      fire_noc.valid_until: "2026-02-01"
+      fire_noc.record_valid_until: "2026-02-01"
+      session.start_date: "2026-08-01"
+    expect: fail

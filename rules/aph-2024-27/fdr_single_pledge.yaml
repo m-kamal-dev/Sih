@@ -1,0 +1,24 @@
+# Graph rule (kind: graph): a single FDR may not be pledged by two
+# institutions in the same session. The assert counts overlap pairs computed
+# from the in-memory graph; the query is retained for the Cypher drawer.
+id: fdr_single_pledge
+version: 1
+aph_ref: "[fill in: APH 2024-27 clause — financial security, single pledge]"
+kind: graph
+graph_query: "MATCH (a:Institution)-[:pledges]->(f:FDR)<-[:pledges]-(b:Institution) WHERE a <> b AND f.session = $session RETURN f, a, b"
+applies_to:
+  categories: [EOA, INTAKE_INCREASE, NEW_PROGRAMME]
+  sessions: ["2026-27"]
+inputs: []
+assert: pairs_count == 0
+on_fail:
+  class: potential_discrepancy
+  severity: high
+  message: 'This FDR is pledged by more than one institution this session: {pairs}.'
+tests:
+  - name: fdr pledged once
+    facts: { "__fdr_pairs": 0 }
+    expect: pass
+  - name: fdr pledged twice in the same session
+    facts: { "__fdr_pairs": 2 }
+    expect: fail

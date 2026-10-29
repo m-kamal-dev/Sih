@@ -1,0 +1,34 @@
+# Presence rule (rule type 1). The missing affidavit lands as a completeness
+# gap the moment the pack is opened — it does not wait for verification.
+id: trust_affidavit_presence
+version: 1
+aph_ref: "[fill in: APH 2024-27 clause — trust affidavit requirement]"
+applies_to:
+  categories: [EOA, INTAKE_INCREASE, NEW_PROGRAMME]
+  sessions: ["2026-27"]
+# The checklist item guarded by this presence rule — the typed absence receipt
+# cites this slot and expected document type.
+checklist_item:
+  slot: trust_documents
+  doc_type: trust_affidavit
+inputs:
+  - fact: trust.affidavit.executed_on
+    min_confidence: 0.80
+assert: present(trust.affidavit.executed_on)
+on_fail:
+  class: completeness_gap
+  severity: high
+  message: 'No trust affidavit in the submitted pack: no executed affidavit could be read for session {session}.'
+on_insufficient_evidence:
+  route: manual_queue
+  message: 'Affidavit present but unreadable (low OCR confidence) — routed to the manual queue.'
+tests:
+  - name: affidavit present
+    facts: { "trust.affidavit.executed_on": "2026-03-12" }
+    expect: pass
+  - name: affidavit absent
+    facts: { "session.start_date": "2026-08-01" }
+    expect: fail
+  - name: affidavit unreadable
+    facts: { "trust.affidavit.executed_on": "" }
+    expect: fail

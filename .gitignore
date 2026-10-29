@@ -1,0 +1,20 @@
+# EvidenceGraph prototype workspace
+node_modules/
+.next/
+.next-dev/
+.turbo/
+dist/
+*.tsbuildinfo
+/data/
+test-results/
+playwright-report/
+.DS_Store
+Thumbs.db
+.cache/
+.next-dev-noh/
+verify-build.log
+/.data/
+/apps/web/.data/
+
+.env.local
+apps/web/.env.local

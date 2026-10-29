@@ -1,0 +1,31 @@
+# Cross-document equality with tolerance (rule type 4): form area vs deed area.
+# Small digitisation drift is allowed; a 1.8-acre gap is a discrepancy.
+id: land_area_form_vs_deed
+version: 1
+aph_ref: "[fill in: APH 2024-27 clause — institutional land holding]"
+applies_to:
+  categories: [EOA, INTAKE_INCREASE, NEW_PROGRAMME]
+  sessions: ["2026-27"]
+inputs:
+  - fact: land.form_area
+    min_confidence: 0.85
+  - fact: land.deed_area
+    min_confidence: 0.85
+assert: abs(num(land.form_area) - num(land.deed_area)) <= 0.05
+on_fail:
+  class: potential_discrepancy
+  severity: high
+  message: 'Form states {land.form_area} acres; the sale deed states {land.deed_area} acres.'
+on_insufficient_evidence:
+  route: field_review
+  message: 'Land area not confidently read on form or deed — routed to field review.'
+tests:
+  - name: matching areas
+    facts: { "land.form_area": "3.20", "land.deed_area": "3.20" }
+    expect: pass
+  - name: rounding within tolerance
+    facts: { "land.form_area": "3.22", "land.deed_area": "3.20" }
+    expect: pass
+  - name: form inflates the parcel
+    facts: { "land.form_area": "5.00", "land.deed_area": "3.20" }
+    expect: fail

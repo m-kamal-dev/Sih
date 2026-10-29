@@ -1,0 +1,36 @@
+# Cross-check (rule type 4/5): the sample degree certificate must name the
+# holder that the (MOCK) registry record for the cited reference belongs to.
+id: degree_holder_matches_registry
+version: 1
+aph_ref: "[fill in: APH 2024-27 clause — recognised degree of a faculty member]"
+applies_to:
+  categories: [EOA, INTAKE_INCREASE, NEW_PROGRAMME]
+  sessions: ["2026-27"]
+inputs:
+  - fact: degree.holder
+    min_confidence: 0.90
+  - fact: degree.registry_ref
+    min_confidence: 0.90
+  - fact: degree.record_holder
+    min_confidence: 0.95
+assert: degree.holder == degree.record_holder
+on_fail:
+  class: potential_discrepancy
+  severity: high
+  message: 'Degree names {degree.holder} but registry record {degree.registry_ref} belongs to {degree.record_holder}.'
+on_insufficient_evidence:
+  route: field_review
+  message: 'Certificate or registry read inconclusive — routed to field review.'
+tests:
+  - name: holder matches record
+    facts:
+      degree.holder: "Kabir Malhotra"
+      degree.registry_ref: "nad:NAD-51331"
+      degree.record_holder: "Kabir Malhotra"
+    expect: pass
+  - name: certificate names a different person
+    facts:
+      degree.holder: "Devika Menon"
+      degree.registry_ref: "nad:NAD-51331"
+      degree.record_holder: "Kabir Malhotra"
+    expect: fail

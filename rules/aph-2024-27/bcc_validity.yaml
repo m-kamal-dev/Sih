@@ -1,0 +1,27 @@
+# Validity rule (rule type 2, temporal). Expired on-session-start = validity gap.
+id: bcc_validity
+version: 1
+aph_ref: "[fill in: APH 2024-27 clause — building completion certificate]"
+applies_to:
+  categories: [EOA, INTAKE_INCREASE, NEW_PROGRAMME]
+  sessions: ["2026-27"]
+inputs:
+  - fact: bcc.valid_until
+    min_confidence: 0.85
+  - fact: session.start_date
+    min_confidence: 0.95
+assert: bcc.valid_until >= session.start_date
+on_fail:
+  class: validity_gap
+  severity: high
+  message: 'Building completion certificate expired {bcc.valid_until}, before the session starts {session.start_date}.'
+on_insufficient_evidence:
+  route: field_review
+  message: 'Certificate date unreadable — routed to field review.'
+tests:
+  - name: valid
+    facts: { "bcc.valid_until": "2027-12-31", "session.start_date": "2026-08-01" }
+    expect: pass
+  - name: expired before session
+    facts: { "bcc.valid_until": "2026-05-30", "session.start_date": "2026-08-01" }
+    expect: fail

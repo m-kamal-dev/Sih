@@ -1,0 +1,153 @@
+{
+  "coldStartTime": 655,
+  "rootMetrics": {
+    "navTime": 778,
+    "fcp": 104
+  },
+  "queueMetrics": {
+    "navTime": 609,
+    "fcp": 40
+  },
+  "apiResults": [
+    {
+      "path": "/api/applications",
+      "method": "GET",
+      "p95": 76,
+      "avg": 18,
+      "payloadBytes": 6440
+    },
+    {
+      "path": "/api/applications/APP-001",
+      "method": "GET",
+      "p95": 5,
+      "avg": 3,
+      "payloadBytes": 21
+    },
+    {
+      "path": "/api/applications/APP-001/findings",
+      "method": "GET",
+      "p95": 4,
+      "avg": 2,
+      "payloadBytes": 373
+    },
+    {
+      "path": "/api/applications/APP-001/facts",
+      "method": "GET",
+      "p95": 3,
+      "avg": 2,
+      "payloadBytes": 2
+    },
+    {
+      "path": "/api/applications/APP-001/conflicts",
+      "method": "GET",
+      "p95": 2,
+      "avg": 2,
+      "payloadBytes": 2
+    },
+    {
+      "path": "/api/applications/APP-001/verifications",
+      "method": "GET",
+      "p95": 4,
+      "avg": 3,
+      "payloadBytes": 2
+    },
+    {
+      "path": "/api/applications/APP-001/graph",
+      "method": "GET",
+      "p95": 6,
+      "avg": 3,
+      "payloadBytes": 23
+    },
+    {
+      "path": "/api/applications/APP-001/letter",
+      "method": "GET",
+      "p95": 3,
+      "avg": 2,
+      "payloadBytes": 21
+    },
+    {
+      "path": "/api/applications/APP-001/pipeline",
+      "method": "GET",
+      "p95": 3,
+      "avg": 2,
+      "payloadBytes": 2
+    },
+    {
+      "path": "/api/applications/APP-001/self-check",
+      "method": "GET",
+      "p95": 4,
+      "avg": 2,
+      "payloadBytes": 21
+    },
+    {
+      "path": "/api/ledger",
+      "method": "GET",
+      "p95": 3,
+      "avg": 2,
+      "payloadBytes": 9548
+    },
+    {
+      "path": "/api/ledger/verify",
+      "method": "GET",
+      "p95": 2,
+      "avg": 1,
+      "payloadBytes": 0
+    },
+    {
+      "path": "/api/metrics",
+      "method": "GET",
+      "p95": 6,
+      "avg": 5,
+      "payloadBytes": 942
+    },
+    {
+      "path": "/api/rules",
+      "method": "GET",
+      "p95": 3,
+      "avg": 2,
+      "payloadBytes": 9173
+    }
+  ],
+  "tabSwitchResults": [
+    {
+      "from": "overview",
+      "to": "evidence",
+      "duration": 572
+    },
+    {
+      "from": "evidence",
+      "to": "conflicts",
+      "duration": 589
+    },
+    {
+      "from": "conflicts",
+      "to": "verification",
+      "duration": 581
+    },
+    {
+      "from": "verification",
+      "to": "graph",
+      "duration": 586
+    },
+    {
+      "from": "graph",
+      "to": "forensics",
+      "duration": 599
+    },
+    {
+      "from": "forensics",
+      "to": "pipeline",
+      "duration": 579
+    },
+    {
+      "from": "pipeline",
+      "to": "decision",
+      "duration": 566
+    },
+    {
+      "from": "decision",
+      "to": "letter",
+      "duration": 586
+    }
+  ]
+}

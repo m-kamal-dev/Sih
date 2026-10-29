@@ -1,0 +1,36 @@
+# Cross-document equality (rule type 4), same-date guard: the form count and
+# the roster count must agree as of the roster date. A low-confidence crop
+# routes to insufficient evidence first (confidence gate), never to a mismatch.
+id: faculty_count_form_vs_roster
+version: 1
+aph_ref: "[fill in: APH 2024-27 clause — faculty strength]"
+applies_to:
+  categories: [EOA, INTAKE_INCREASE, NEW_PROGRAMME]
+  sessions: ["2026-27"]
+inputs:
+  - fact: faculty.form_count
+    min_confidence: 0.90
+  - fact: faculty.roster_count
+    min_confidence: 0.90
+assert: num(faculty.form_count) == num(faculty.roster_count)
+on_fail:
+  class: potential_discrepancy
+  severity: medium
+  message: 'Form states {faculty.form_count} faculty; the roster states {faculty.roster_count} as of the roster date.'
+on_insufficient_evidence:
+  route: field_review
+  message: 'Faculty count not confidently read (blurred crop) — left to the confidence gate, no mismatch asserted.'
+tests:
+  - name: counts agree
+    facts: { "faculty.form_count": "123", "faculty.roster_count": "123" }
+    expect: pass
+  - name: roster read is blurred (confidence gate, not a value-fail)
+    facts:
+      faculty.form_count: "123"
+      faculty.roster_count: "173"
+      # <fact-key>_confidence sets that fact's reading confidence for this test
+      faculty.roster_count_confidence: "0.62"
+    expect: insufficient_evidence
+  - name: clear counts disagree
+    facts: { "faculty.form_count": "123", "faculty.roster_count": "145" }
+    expect: fail

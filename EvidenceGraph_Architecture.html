@@ -1,0 +1,811 @@
+<!doctype html><html><head><meta charset=utf8><meta name=viewport content="width=device-width,initial-scale=1,viewport-fit=cover"><style>:root{color-scheme:light;box-sizing:border-box;padding-top:env(safe-area-inset-top,0px);padding-bottom:env(safe-area-inset-bottom,0px)}html{scroll-padding-top:env(safe-area-inset-top,0px)}body{margin:0;padding:0;font:14px -apple-system,BlinkMacSystemFont,sans-serif;background:#fff;color:#000}img{max-width:100%}[hidden]:not([hidden=until-found i]){display:none!important}</style></head><body>
+<title>EvidenceGraph Architecture</title>
+<meta name="claude:viewport-fit-sides" content="cover">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Bricolage+Grotesque:opsz,wght@12..96,500;12..96,700&family=IBM+Plex+Mono:wght@400;500&family=IBM+Plex+Sans:ital,wght@0,400;0,500;0,600;1,400&display=swap">
+<style>
+/* Layout: technical spec. Sticky section rail on the left, wide main column so the architecture diagram gets room; prose capped near 70ch. */
+:root{
+  --bg:#F3F5F8; --surface:#FFFFFF; --fg:#13202D; --muted:#56636F; --line:#D5DBE2; --band:#E9EDF2;
+  --accent:#1D5BA6; --accent-soft:#E6EEF8;
+  --verify:#0B7660; --verify-soft:#E0F1EB;
+  --warn:#9A5306; --warn-soft:#FBEFDF;
+  --danger:#AE2A21; --danger-soft:#FAE8E6;
+  --code-bg:#0F1B27; --code-fg:#DAE4EE; --code-dim:#8FA2B5; --code-key:#8CC4FF; --code-str:#9BE0C6;
+  --box-bg:#FFFFFF; --box-bd:#BFC8D2;
+  --f-display:"Bricolage Grotesque","Segoe UI",system-ui,sans-serif;
+  --f-body:"IBM Plex Sans","Segoe UI",system-ui,sans-serif;
+  --f-mono:"IBM Plex Mono",ui-monospace,Menlo,Consolas,monospace;
+}
+@media (prefers-color-scheme: dark){:root:not([data-theme="light"]){
+  --bg:#0E141B; --surface:#151E28; --fg:#E4EAF1; --muted:#98A5B3; --line:#2A3542; --band:#121A23;
+  --accent:#78A9EC; --accent-soft:#172A43;
+  --verify:#4FC4A6; --verify-soft:#10302A;
+  --warn:#EFA650; --warn-soft:#352512;
+  --danger:#F2786E; --danger-soft:#3A1A18;
+  --code-bg:#0A1118; --code-fg:#DAE4EE; --code-dim:#7F92A6; --code-key:#8CC4FF; --code-str:#9BE0C6;
+  --box-bg:#151E28; --box-bd:#3A4757; color-scheme:dark }}
+:root[data-theme="dark"]{
+  --bg:#0E141B; --surface:#151E28; --fg:#E4EAF1; --muted:#98A5B3; --line:#2A3542; --band:#121A23;
+  --accent:#78A9EC; --accent-soft:#172A43;
+  --verify:#4FC4A6; --verify-soft:#10302A;
+  --warn:#EFA650; --warn-soft:#352512;
+  --danger:#F2786E; --danger-soft:#3A1A18;
+  --code-bg:#0A1118; --code-fg:#DAE4EE; --code-dim:#7F92A6; --code-key:#8CC4FF; --code-str:#9BE0C6;
+  --box-bg:#151E28; --box-bd:#3A4757; color-scheme:dark }
+
+*{box-sizing:border-box}
+body{background:var(--bg);color:var(--fg);font-family:var(--f-body);font-size:16px;line-height:1.6;
+  padding-left:max(16px,env(safe-area-inset-left,0px));padding-right:max(16px,env(safe-area-inset-right,0px))}
+.wrap{max-width:1300px;margin:0 auto;display:grid;grid-template-columns:210px minmax(0,1fr);gap:48px;padding-block:40px 80px}
+nav.rail{position:sticky;top:calc(env(safe-area-inset-top,0px) + 24px);align-self:start;max-height:calc(100vh - 48px);overflow:auto;font-size:13.5px}
+nav.rail .lbl{font-family:var(--f-mono);font-size:11px;letter-spacing:.08em;text-transform:uppercase;color:var(--muted);margin-bottom:10px}
+nav.rail ol{list-style:none;margin:0;padding:0;display:grid;gap:2px;counter-reset:s}
+nav.rail a{display:flex;gap:8px;color:var(--muted);text-decoration:none;padding:4px 8px;border-radius:5px}
+nav.rail a span{font-family:var(--f-mono);font-size:12px;min-width:1.6em;color:var(--muted);opacity:.7}
+nav.rail a:hover,nav.rail a:focus-visible{color:var(--fg);background:var(--surface);outline:none}
+main{min-width:0}
+header.hero{padding-bottom:28px;border-bottom:1px solid var(--line);margin-bottom:12px}
+.eyebrow{font-family:var(--f-mono);font-size:12px;letter-spacing:.08em;text-transform:uppercase;color:var(--accent)}
+h1{font-family:var(--f-display);font-weight:700;font-size:clamp(34px,5vw,56px);line-height:1.02;letter-spacing:-.02em;margin:10px 0 14px;text-wrap:balance}
+.lede{font-size:19px;max-width:62ch;color:var(--fg);margin:0}
+.lede em{font-style:normal;color:var(--accent);font-weight:500}
+.glance{display:grid;grid-template-columns:repeat(4,minmax(0,1fr));gap:1px;background:var(--line);border:1px solid var(--line);border-radius:8px;overflow:hidden;margin-top:26px}
+.glance div{background:var(--surface);padding:14px 16px}
+.glance b{display:block;font-family:var(--f-display);font-size:28px;font-weight:700;line-height:1.1;font-variant-numeric:tabular-nums}
+.glance span{font-size:13px;color:var(--muted)}
+section{padding-top:44px;scroll-margin-top:16px}
+h2{font-family:var(--f-display);font-weight:700;font-size:28px;letter-spacing:-.01em;margin:0 0 6px;display:flex;gap:12px;align-items:baseline;text-wrap:balance}
+h2 .n{font-family:var(--f-mono);font-size:14px;font-weight:500;color:var(--accent)}
+h3{font-size:17px;font-weight:600;margin:28px 0 8px}
+p,ul,ol.steps{max-width:72ch}
+.sub{color:var(--muted);margin:0 0 18px;max-width:72ch}
+a{color:var(--accent)}
+code{font-family:var(--f-mono);font-size:.88em;background:var(--accent-soft);padding:1px 5px;border-radius:4px}
+pre.code{font-family:var(--f-mono);font-size:13px;line-height:1.55;background:var(--code-bg);color:var(--code-fg);padding:16px 18px;border-radius:8px;overflow-x:auto;margin:12px 0 20px;max-width:100%}
+pre.code .c{color:var(--code-dim)} pre.code .k{color:var(--code-key)} pre.code .s{color:var(--code-str)}
+.figure{background:var(--surface);border:1px solid var(--line);border-radius:10px;padding:14px;margin:18px 0 10px}
+.scroll{overflow-x:auto}
+svg.arch{display:block;width:100%;min-width:980px;height:auto;font-family:var(--f-body)}
+.d-band{fill:var(--band)}
+.d-code{font-family:var(--f-mono);font-size:12px;fill:var(--accent);letter-spacing:.06em}
+.d-bl{font-size:13px;font-weight:600;fill:var(--fg)}
+.d-t{font-size:14px;font-weight:600;fill:var(--fg)}
+.d-s{font-size:12px;fill:var(--muted)}
+.d-arr{stroke:var(--muted);stroke-width:1.4}
+.k-src rect,.k-svc rect{fill:var(--box-bg);stroke:var(--box-bd);stroke-width:1}
+.k-agent rect{fill:var(--accent-soft);stroke:var(--accent);stroke-width:1}
+.k-gate rect{fill:var(--warn-soft);stroke:var(--warn);stroke-width:1;stroke-dasharray:5 3}
+.k-data rect{fill:var(--verify-soft);stroke:var(--verify);stroke-width:1}
+.legend{display:flex;flex-wrap:wrap;gap:16px;font-size:13px;color:var(--muted);margin:6px 2px 0}
+.legend i{display:inline-block;width:14px;height:10px;border-radius:2px;margin-right:6px;vertical-align:-1px;border:1px solid}
+.lg-agent{background:var(--accent-soft);border-color:var(--accent)!important}
+.lg-gate{background:var(--warn-soft);border-color:var(--warn)!important;border-style:dashed!important}
+.lg-data{background:var(--verify-soft);border-color:var(--verify)!important}
+.lg-box{background:var(--box-bg);border-color:var(--box-bd)!important}
+.grid2{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:14px;margin-top:16px}
+.grid3{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:14px;margin-top:16px}
+.card{background:var(--surface);border:1px solid var(--line);border-radius:8px;padding:16px 18px;min-width:0}
+.card h4{margin:0 0 2px;font-size:16px;font-weight:600;display:flex;justify-content:space-between;gap:8px;align-items:baseline}
+.card .role{color:var(--muted);font-size:14px;margin:0 0 10px}
+.card dl{margin:0;display:grid;grid-template-columns:88px minmax(0,1fr);gap:6px 12px;font-size:14px}
+.card dt{font-family:var(--f-mono);font-size:11.5px;letter-spacing:.05em;text-transform:uppercase;color:var(--muted);padding-top:2px}
+.card dd{margin:0}
+.tag{font-family:var(--f-mono);font-size:11px;letter-spacing:.04em;padding:2px 7px;border-radius:999px;white-space:nowrap;border:1px solid}
+.t-agent{color:var(--accent);border-color:var(--accent);background:var(--accent-soft)}
+.t-gate{color:var(--warn);border-color:var(--warn);background:var(--warn-soft)}
+.t-ok{color:var(--verify);border-color:var(--verify);background:var(--verify-soft)}
+.t-bad{color:var(--danger);border-color:var(--danger);background:var(--danger-soft)}
+.t-mid{color:var(--warn);border-color:var(--warn);background:var(--warn-soft)}
+.t-n{color:var(--muted);border-color:var(--line);background:var(--surface)}
+.tbl{overflow-x:auto;margin:14px 0 18px;border:1px solid var(--line);border-radius:8px;background:var(--surface)}
+table{border-collapse:collapse;width:100%;font-size:14px;min-width:620px}
+th,td{text-align:left;padding:9px 12px;border-bottom:1px solid var(--line);vertical-align:top}
+th{font-family:var(--f-mono);font-size:11.5px;letter-spacing:.06em;text-transform:uppercase;color:var(--muted);font-weight:500;background:var(--band)}
+tr:last-child td{border-bottom:0}
+td.num{font-variant-numeric:tabular-nums;font-family:var(--f-mono);font-size:13px}
+ol.steps{padding-left:0;list-style:none;counter-reset:st;display:grid;gap:10px}
+ol.steps li{counter-increment:st;display:grid;grid-template-columns:34px minmax(0,1fr);gap:10px}
+ol.steps li::before{content:counter(st,decimal-leading-zero);font-family:var(--f-mono);font-size:13px;color:var(--accent);padding-top:2px}
+.principles{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:1px;background:var(--line);border:1px solid var(--line);border-radius:8px;overflow:hidden;margin-top:16px}
+.principles div{background:var(--surface);padding:16px 18px}
+.principles b{display:block;font-weight:600;margin-bottom:4px}
+.principles p{margin:0;font-size:14.5px;color:var(--muted)}
+.note{border-left:3px solid var(--warn);border-radius:0;background:var(--warn-soft);padding:12px 16px;margin:16px 0;max-width:80ch;font-size:15px}
+.note.ok{border-left-color:var(--verify);background:var(--verify-soft)}
+pre.mermaid{background:var(--surface);border:1px solid var(--line);border-radius:10px;padding:16px;overflow-x:auto;margin:16px 0}
+.qa{display:grid;gap:10px;margin-top:14px}
+.qa div{background:var(--surface);border:1px solid var(--line);border-radius:8px;padding:12px 16px}
+.qa b{display:block;margin-bottom:4px}
+.qa p{margin:0;font-size:15px;color:var(--muted);max-width:none}
+.timeline{display:grid;gap:0;border-left:2px solid var(--line);margin:16px 0 0 6px}
+.timeline div{position:relative;padding:0 0 16px 22px}
+.timeline div::before{content:"";position:absolute;left:-7px;top:6px;width:12px;height:12px;border-radius:50%;background:var(--surface);border:2px solid var(--accent)}
+.timeline b{font-family:var(--f-mono);font-size:13px;color:var(--accent);font-weight:500}
+.timeline p{margin:2px 0 0;font-size:15px}
+footer{margin-top:56px;padding-top:18px;border-top:1px solid var(--line);color:var(--muted);font-size:13px}
+@media (max-width:980px){
+  .wrap{grid-template-columns:minmax(0,1fr);gap:0}
+  nav.rail{position:static;max-height:none;border-bottom:1px solid var(--line);padding-bottom:16px;margin-bottom:8px}
+  nav.rail ol{grid-template-columns:repeat(2,minmax(0,1fr))}
+  .grid3,.principles{grid-template-columns:repeat(2,minmax(0,1fr))}
+}
+@media (max-width:640px){
+  .grid2,.grid3,.principles{grid-template-columns:minmax(0,1fr)}
+  .glance{grid-template-columns:repeat(2,minmax(0,1fr))}
+  .card dl{grid-template-columns:minmax(0,1fr)}
+  nav.rail ol{grid-template-columns:minmax(0,1fr)}
+}
+</style>
+
+<div class="wrap">
+<nav class="rail" aria-label="Sections">
+  <div class="lbl">Contents</div>
+  <ol>
+    <li><a href="#principles"><span>01</span>Principles</a></li>
+    <li><a href="#architecture"><span>02</span>Architecture</a></li>
+    <li><a href="#lifecycle"><span>03</span>Lifecycle</a></li>
+    <li><a href="#agents"><span>04</span>Agents</a></li>
+    <li><a href="#data"><span>05</span>Data layer</a></li>
+    <li><a href="#schemas"><span>06</span>Schemas</a></li>
+    <li><a href="#findings"><span>07</span>Findings model</a></li>
+    <li><a href="#rules"><span>08</span>Rules as code</a></li>
+    <li><a href="#fraud"><span>09</span>Fraud patterns</a></li>
+    <li><a href="#forensics"><span>10</span>Forensic signals</a></li>
+    <li><a href="#verification"><span>11</span>Verification</a></li>
+    <li><a href="#security"><span>12</span>Security</a></li>
+    <li><a href="#console"><span>13</span>Reviewer console</a></li>
+    <li><a href="#stack"><span>14</span>Tech stack</a></li>
+    <li><a href="#deploy"><span>15</span>Deployment</a></li>
+    <li><a href="#demo"><span>16</span>Demo plan</a></li>
+    <li><a href="#metrics"><span>17</span>Evaluation</a></li>
+    <li><a href="#pitch"><span>18</span>Pitch and Q&amp;A</a></li>
+    <li><a href="#build"><span>19</span>Build plan</a></li>
+    <li><a href="#risks"><span>20</span>Risks and claims</a></li>
+  </ol>
+</nav>
+
+<main>
+<header class="hero">
+  <div class="eyebrow">SIH26261 · AICTE · Smart Automation</div>
+  <h1>EvidenceGraph</h1>
+  <p class="lede">An agentic validation layer that sits beside the AICTE approval portal. <em>Agents gather and propose evidence, versioned rules decide, and authorised officials make every adverse call.</em> Every finding links back to the page, the rule and the source that produced it.</p>
+  <div class="glance">
+    <div><b>8</b><span>agents plus two human checkpoints</span></div>
+    <div><b>4 + 1</b><span>stores: Postgres, Neo4j, Qdrant, MinIO, plus Redis</span></div>
+    <div><b>6</b><span>verification statuses, exactly as the PS lists them</span></div>
+    <div><b>0</b><span>adverse decisions taken without an officer</span></div>
+  </div>
+</header>
+
+<section id="principles">
+  <h2><span class="n">01</span>Design principles</h2>
+  <p class="sub">Each principle answers a question the jury will ask. Every component below follows from these.</p>
+  <div class="principles">
+    <div><b>Facts carry provenance</b><p>Every value records its document, page, bounding box, extractor, confidence and the date it was true (<code>as_of</code>).</p></div>
+    <div><b>Models extract, rules decide</b><p>LLMs read and explain. A compliance outcome only comes from a versioned rule that cites its handbook clause.</p></div>
+    <div><b>No finding without evidence</b><p>The Critic drops any finding whose evidence pointer does not resolve to a stored crop and fact.</p></div>
+    <div><b>Never fabricate verification</b><p>If an issuer cannot be reached, the status is <code>pending</code> or <code>source_unavailable</code>, and the case goes to a person.</p></div>
+    <div><b>Suspicious is not forged</b><p>Anomaly signals, potential discrepancies and confirmed violations are kept as separate classes. Only officers escalate.</p></div>
+    <div><b>Augment, don't replace</b><p>A standalone service with a portal adapter. No live AICTE integration is claimed, and no restricted database is assumed.</p></div>
+  </div>
+</section>
+
+<section id="architecture">
+  <h2><span class="n">02</span>System architecture</h2>
+  <p class="sub">Six layers. Requests flow downward. Agents read and write the data plane only through typed tools, never with raw database access.</p>
+  <div class="figure"><div class="scroll"><svg class="arch" viewBox="0 0 1200 984" role="img" aria-labelledby="archT archD"><title id="archT">EvidenceGraph system architecture</title><desc id="archD">Six layers: sources, edge and ingestion, agents, models and tools, data plane, and people and operations.</desc><defs><marker id="ah" viewBox="0 0 10 10" refX="8" refY="5" markerWidth="7" markerHeight="7" orient="auto-start-reverse"><path d="M2 1L8 5L2 9" fill="none" stroke="context-stroke" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round"/></marker></defs><rect x="10" y="10" width="1180" height="110" rx="10" class="d-band"/><text x="26" y="40" class="d-code" text-anchor="start">L1</text><text x="26" y="60" class="d-bl" text-anchor="start">Sources</text><g class="k-src"><rect x="170" y="28" width="236" height="74" rx="6"/><text x="184" y="52" class="d-t" text-anchor="start">AICTE approval portal</text><text x="184" y="72" class="d-s" text-anchor="start">Adapter: webhook or batch pull</text><text x="184" y="88" class="d-s" text-anchor="start">Form data + uploaded PDFs</text></g><g class="k-src"><rect x="428" y="28" width="236" height="74" rx="6"/><text x="442" y="52" class="d-t" text-anchor="start">Institution self-check</text><text x="442" y="72" class="d-s" text-anchor="start">Pre-submission validation</text><text x="442" y="88" class="d-s" text-anchor="start">Same engine, applicant view</text></g><g class="k-src"><rect x="686" y="28" width="236" height="74" rx="6"/><text x="700" y="52" class="d-t" text-anchor="start">Authorised AICTE records</text><text x="700" y="72" class="d-s" text-anchor="start">Prior EoA, intake, faculty</text><text x="700" y="88" class="d-s" text-anchor="start">TER status, deficiency history</text></g><g class="k-src"><rect x="944" y="28" width="236" height="74" rx="6"/><text x="958" y="52" class="d-t" text-anchor="start">Issuer sources</text><text x="958" y="72" class="d-s" text-anchor="start">DigiLocker / NAD, DSC, QR</text><text x="958" y="88" class="d-s" text-anchor="start">MCA21, GSTIN, manual queue</text></g><line x1="288" y1="122" x2="288" y2="137" class="d-arr" marker-end="url(#ah)"/><line x1="685" y1="122" x2="685" y2="137" class="d-arr" marker-end="url(#ah)"/><line x1="1082" y1="122" x2="1082" y2="137" class="d-arr" marker-end="url(#ah)"/><rect x="10" y="140" width="1180" height="110" rx="10" class="d-band"/><text x="26" y="170" class="d-code" text-anchor="start">L2</text><text x="26" y="190" class="d-bl" text-anchor="start">Edge and ingest</text><g class="k-src"><rect x="170" y="158" width="236" height="74" rx="6"/><text x="184" y="182" class="d-t" text-anchor="start">API gateway</text><text x="184" y="202" class="d-s" text-anchor="start">Keycloak OIDC, RBAC, mTLS</text><text x="184" y="218" class="d-s" text-anchor="start">Rate limits, request audit</text></g><g class="k-src"><rect x="428" y="158" width="236" height="74" rx="6"/><text x="442" y="182" class="d-t" text-anchor="start">Ingestion service</text><text x="442" y="202" class="d-s" text-anchor="start">SHA-256, ClamAV, MIME sniff</text><text x="442" y="218" class="d-s" text-anchor="start">PDF sanitise, dedupe by hash</text></g><g class="k-src"><rect x="686" y="158" width="236" height="74" rx="6"/><text x="700" y="182" class="d-t" text-anchor="start">Page pipeline</text><text x="700" y="202" class="d-s" text-anchor="start">Render, deskew, denoise</text><text x="700" y="218" class="d-s" text-anchor="start">DPI upscale, language detect</text></g><g class="k-src"><rect x="944" y="158" width="236" height="74" rx="6"/><text x="958" y="182" class="d-t" text-anchor="start">Job queue</text><text x="958" y="202" class="d-s" text-anchor="start">Redis + Celery workers</text><text x="958" y="218" class="d-s" text-anchor="start">Idempotent tasks keyed by hash</text></g><line x1="288" y1="252" x2="288" y2="267" class="d-arr" marker-end="url(#ah)"/><line x1="685" y1="252" x2="685" y2="267" class="d-arr" marker-end="url(#ah)"/><line x1="1082" y1="252" x2="1082" y2="267" class="d-arr" marker-end="url(#ah)"/><rect x="10" y="270" width="1180" height="292" rx="10" class="d-band"/><text x="26" y="300" class="d-code" text-anchor="start">L3</text><text x="26" y="320" class="d-bl" text-anchor="start">Agents</text><g class="k-agent"><rect x="170" y="288" width="1010" height="54" rx="6"/><text x="184" y="312" class="d-t" text-anchor="start">Supervisor graph (LangGraph)</text><text x="184" y="332" class="d-s" text-anchor="start">Typed state per application · Postgres checkpointer · replayable runs · interrupts for human review</text></g><g class="k-agent"><rect x="170" y="360" width="236" height="74" rx="6"/><text x="184" y="384" class="d-t" text-anchor="start">Intake &amp; planner</text><text x="184" y="404" class="d-s" text-anchor="start">Category + session → checklist</text><text x="184" y="420" class="d-s" text-anchor="start">Completeness diff, task plan</text></g><g class="k-agent"><rect x="428" y="360" width="236" height="74" rx="6"/><text x="442" y="384" class="d-t" text-anchor="start">Doc reader</text><text x="442" y="404" class="d-s" text-anchor="start">Classify, OCR, tables, fields</text><text x="442" y="420" class="d-s" text-anchor="start">Each value: page, bbox, confidence</text></g><g class="k-agent"><rect x="686" y="360" width="236" height="74" rx="6"/><text x="700" y="384" class="d-t" text-anchor="start">Forensics</text><text x="700" y="404" class="d-s" text-anchor="start">PDF structure, DSC, QR, fonts</text><text x="700" y="420" class="d-s" text-anchor="start">Stamp reuse, ELA as weak signal</text></g><g class="k-agent"><rect x="944" y="360" width="236" height="74" rx="6"/><text x="958" y="384" class="d-t" text-anchor="start">Source verifier</text><text x="958" y="404" class="d-s" text-anchor="start">Connector registry</text><text x="958" y="420" class="d-s" text-anchor="start">Six PS statuses, never inferred</text></g><g class="k-gate"><rect x="170" y="466" width="186" height="74" rx="6"/><text x="184" y="490" class="d-t" text-anchor="start">Confidence gate</text><text x="184" y="510" class="d-s" text-anchor="start">Low-confidence fields</text><text x="184" y="526" class="d-s" text-anchor="start">→ officer corrects (HITL)</text></g><g class="k-agent"><rect x="376" y="466" width="186" height="74" rx="6"/><text x="390" y="490" class="d-t" text-anchor="start">Cross-check</text><text x="390" y="510" class="d-s" text-anchor="start">Entity resolution, as_of</text><text x="390" y="526" class="d-s" text-anchor="start">Form vs doc vs record</text></g><g class="k-agent"><rect x="582" y="466" width="186" height="74" rx="6"/><text x="596" y="490" class="d-t" text-anchor="start">Compliance</text><text x="596" y="510" class="d-s" text-anchor="start">Versioned YAML rules</text><text x="596" y="526" class="d-s" text-anchor="start">CV infra checks, advisory</text></g><g class="k-gate"><rect x="788" y="466" width="186" height="74" rx="6"/><text x="802" y="490" class="d-t" text-anchor="start">Critic</text><text x="802" y="510" class="d-s" text-anchor="start">Evidence gate, no verdicts</text><text x="802" y="526" class="d-s" text-anchor="start">Sends back once, then human</text></g><g class="k-agent"><rect x="994" y="466" width="186" height="74" rx="6"/><text x="1008" y="490" class="d-t" text-anchor="start">Reporter</text><text x="1008" y="510" class="d-s" text-anchor="start">Report and risk triage</text><text x="1008" y="526" class="d-s" text-anchor="start">Deficiency letter draft</text></g><line x1="288" y1="564" x2="288" y2="579" class="d-arr" marker-end="url(#ah)"/><line x1="685" y1="564" x2="685" y2="579" class="d-arr" marker-end="url(#ah)"/><line x1="1082" y1="564" x2="1082" y2="579" class="d-arr" marker-end="url(#ah)"/><rect x="10" y="582" width="1180" height="110" rx="10" class="d-band"/><text x="26" y="612" class="d-code" text-anchor="start">L4</text><text x="26" y="632" class="d-bl" text-anchor="start">Models and tools</text><g class="k-svc"><rect x="170" y="600" width="186" height="74" rx="6"/><text x="184" y="624" class="d-t" text-anchor="start">OCR &amp; layout</text><text x="184" y="644" class="d-s" text-anchor="start">PaddleOCR, Docling</text><text x="184" y="660" class="d-s" text-anchor="start">Indic OCR, Table Transformer</text></g><g class="k-svc"><rect x="376" y="600" width="186" height="74" rx="6"/><text x="390" y="624" class="d-t" text-anchor="start">LLM server</text><text x="390" y="644" class="d-s" text-anchor="start">Open-weight model on vLLM</text><text x="390" y="660" class="d-s" text-anchor="start">On-prem, JSON-schema output</text></g><g class="k-svc"><rect x="582" y="600" width="186" height="74" rx="6"/><text x="596" y="624" class="d-t" text-anchor="start">Vision models</text><text x="596" y="644" class="d-s" text-anchor="start">DINOv2 / CLIP, pHash</text><text x="596" y="660" class="d-s" text-anchor="start">Stamp and photo detectors</text></g><g class="k-svc"><rect x="788" y="600" width="186" height="74" rx="6"/><text x="802" y="624" class="d-t" text-anchor="start">Forensic kit</text><text x="802" y="644" class="d-s" text-anchor="start">pikepdf, pyHanko, ExifTool</text><text x="802" y="660" class="d-s" text-anchor="start">OpenCV, pyzbar</text></g><g class="k-svc"><rect x="994" y="600" width="186" height="74" rx="6"/><text x="1008" y="624" class="d-t" text-anchor="start">Rule engine</text><text x="1008" y="644" class="d-s" text-anchor="start">YAML rules + unit tests</text><text x="1008" y="660" class="d-s" text-anchor="start">Versioned by APH edition</text></g><line x1="288" y1="694" x2="288" y2="709" class="d-arr" marker-end="url(#ah)"/><line x1="685" y1="694" x2="685" y2="709" class="d-arr" marker-end="url(#ah)"/><line x1="1082" y1="694" x2="1082" y2="709" class="d-arr" marker-end="url(#ah)"/><rect x="10" y="712" width="1180" height="130" rx="10" class="d-band"/><text x="26" y="742" class="d-code" text-anchor="start">L5</text><text x="26" y="762" class="d-bl" text-anchor="start">Data plane</text><g class="k-data"><rect x="170" y="730" width="186" height="94" rx="6"/><text x="184" y="754" class="d-t" text-anchor="start">PostgreSQL</text><text x="184" y="774" class="d-s" text-anchor="start">System of record</text><text x="184" y="790" class="d-s" text-anchor="start">Facts, findings, rules, RLS</text><text x="184" y="806" class="d-s" text-anchor="start">Hash-chained audit, outbox</text></g><g class="k-data"><rect x="376" y="730" width="186" height="94" rx="6"/><text x="390" y="754" class="d-t" text-anchor="start">Neo4j</text><text x="390" y="774" class="d-s" text-anchor="start">Entity + evidence graph</text><text x="390" y="790" class="d-s" text-anchor="start">Faculty, land, FDR, trusts</text><text x="390" y="806" class="d-s" text-anchor="start">Cross-institution patterns</text></g><g class="k-data"><rect x="582" y="730" width="186" height="94" rx="6"/><text x="596" y="754" class="d-t" text-anchor="start">Qdrant</text><text x="596" y="774" class="d-s" text-anchor="start">Similarity search</text><text x="596" y="790" class="d-s" text-anchor="start">APH clauses, page text</text><text x="596" y="806" class="d-s" text-anchor="start">Stamps, infra photos</text></g><g class="k-data"><rect x="788" y="730" width="186" height="94" rx="6"/><text x="802" y="754" class="d-t" text-anchor="start">MinIO</text><text x="802" y="774" class="d-s" text-anchor="start">Object store, WORM lock</text><text x="802" y="790" class="d-s" text-anchor="start">Raw files, page renders</text><text x="802" y="806" class="d-s" text-anchor="start">Evidence crops, SSE</text></g><g class="k-data"><rect x="994" y="730" width="186" height="94" rx="6"/><text x="1008" y="754" class="d-t" text-anchor="start">Redis</text><text x="1008" y="774" class="d-s" text-anchor="start">Queue and cache</text><text x="1008" y="790" class="d-s" text-anchor="start">Celery broker</text><text x="1008" y="806" class="d-s" text-anchor="start">Connector rate limits</text></g><line x1="356" y1="777" x2="374" y2="777" class="d-arr" marker-end="url(#ah)"/><line x1="288" y1="844" x2="288" y2="859" class="d-arr" marker-end="url(#ah)"/><line x1="685" y1="844" x2="685" y2="859" class="d-arr" marker-end="url(#ah)"/><line x1="1082" y1="844" x2="1082" y2="859" class="d-arr" marker-end="url(#ah)"/><rect x="10" y="862" width="1180" height="110" rx="10" class="d-band"/><text x="26" y="892" class="d-code" text-anchor="start">L6</text><text x="26" y="912" class="d-bl" text-anchor="start">People and ops</text><g class="k-src"><rect x="170" y="880" width="186" height="74" rx="6"/><text x="184" y="904" class="d-t" text-anchor="start">Reviewer console</text><text x="184" y="924" class="d-s" text-anchor="start">PDF bbox overlay, conflicts</text><text x="184" y="940" class="d-s" text-anchor="start">Accept / dismiss / escalate</text></g><g class="k-src"><rect x="376" y="880" width="186" height="74" rx="6"/><text x="390" y="904" class="d-t" text-anchor="start">Institution report</text><text x="390" y="924" class="d-s" text-anchor="start">Fix list before submitting</text><text x="390" y="940" class="d-s" text-anchor="start">Rectification window</text></g><g class="k-src"><rect x="582" y="880" width="186" height="74" rx="6"/><text x="596" y="904" class="d-t" text-anchor="start">Alerts</text><text x="596" y="924" class="d-s" text-anchor="start">Missing, expired, pending</text><text x="596" y="940" class="d-s" text-anchor="start">Anomalies, SLA breaches</text></g><g class="k-src"><rect x="788" y="880" width="186" height="74" rx="6"/><text x="802" y="904" class="d-t" text-anchor="start">Audit &amp; metrics</text><text x="802" y="924" class="d-s" text-anchor="start">Ledger viewer, eval board</text><text x="802" y="940" class="d-s" text-anchor="start">Precision, coverage, time</text></g><g class="k-src"><rect x="994" y="880" width="186" height="74" rx="6"/><text x="1008" y="904" class="d-t" text-anchor="start">Observability</text><text x="1008" y="924" class="d-s" text-anchor="start">OpenTelemetry, Grafana</text><text x="1008" y="940" class="d-s" text-anchor="start">Langfuse LLM traces</text></g></svg></div>
+    <div class="legend"><span><i class="lg-agent"></i>Agent</span><span><i class="lg-gate"></i>Human or quality gate</span><span><i class="lg-data"></i>Data store</span><span><i class="lg-box"></i>Service or interface</span></div>
+  </div>
+  <h3>What each layer is responsible for</h3>
+  <div class="tbl"><table>
+    <thead><tr><th>Layer</th><th>Responsibility</th><th>Key decision</th></tr></thead>
+    <tbody>
+      <tr><td>L1 Sources</td><td>Application data, uploads, prior AICTE records, issuer endpoints</td><td>Each source sits behind an adapter interface, so a mock and a real connector can be swapped without code changes</td></tr>
+      <tr><td>L2 Edge and ingest</td><td>Auth, upload hardening, page rendering, job dispatch</td><td>Files are content-addressed by SHA-256, so re-uploads and retries are idempotent</td></tr>
+      <tr><td>L3 Agents</td><td>Planning, extraction, forensics, verification, reconciliation, rule evaluation, critique, reporting</td><td>LangGraph state machine with checkpoints, so every run can be replayed for audit</td></tr>
+      <tr><td>L4 Models and tools</td><td>OCR, LLM, vision, forensic libraries, rule engine</td><td>All self-hosted. No application document leaves the deployment</td></tr>
+      <tr><td>L5 Data plane</td><td>Truth, relationships, similarity, blobs, queues</td><td>Postgres is the only source of truth. Neo4j and Qdrant are rebuildable projections</td></tr>
+      <tr><td>L6 People and ops</td><td>Review, rectification, alerts, audit, monitoring</td><td>Humans act here. The system drafts actions, and officers send them</td></tr>
+    </tbody></table></div>
+</section>
+
+<section id="lifecycle">
+  <h2><span class="n">03</span>Application lifecycle</h2>
+  <p class="sub">What happens from upload to an officer's decision. The agent graph runs per application; heavy steps fan out per document.</p>
+<pre class="mermaid">
+flowchart LR
+  A[Submission or self-check] --> B[Ingest and render]
+  B --> C[Intake and planner]
+  C --> D[Doc reader]
+  C --> E[Forensics]
+  C --> F[Source verifier]
+  D --> G{Confidence gate}
+  G -- low confidence --> H[[Officer corrects field]]
+  H --> I[Cross-check]
+  G -- confident --> I
+  E --> I
+  F --> I
+  I --> J[Compliance engine]
+  J --> K{Critic}
+  K -- evidence missing, once --> I
+  K -- pass --> L[Reporter]
+  L --> M[[Officer decision]]
+  M --> N[(Audit ledger)]
+</pre>
+  <ol class="steps">
+    <li><div><b>Submission event.</b> The portal adapter receives a webhook or pulls a batch. During the self-check, the institution uploads through the same API.</div></li>
+    <li><div><b>Ingest.</b> Each file is hashed (SHA-256), scanned with ClamAV, and its MIME type is checked against its extension. qpdf strips JavaScript and embedded files. Pages are rendered at 300 DPI, deskewed and denoised. Duplicates are skipped by hash.</div></li>
+    <li><div><b>Intake.</b> The application category and session select <code>checklist@version</code>. A completeness diff produces <code>completeness_gap</code> findings straight away, before any model runs.</div></li>
+    <li><div><b>Parallel fan-out.</b> The Doc reader, Forensics and Source verifier run per document as Celery tasks. The supervisor waits on all of them.</div></li>
+    <li><div><b>Confidence gate.</b> Fields below a per-type threshold pause the graph with a LangGraph interrupt. An officer confirms or corrects the value. The correction is stored as a new fact version with <code>source = human</code>.</div></li>
+    <li><div><b>Cross-check.</b> Entities are resolved, written to Neo4j, and compared on matching dates. Cross-institution queries run against the whole session.</div></li>
+    <li><div><b>Compliance.</b> Versioned rules run over the fact set. Each returns pass, fail, or insufficient evidence.</div></li>
+    <li><div><b>Critic.</b> Checks every finding for resolvable evidence, a valid rule reference, contradictions and neutral wording. It sends work back once, then escalates to a human.</div></li>
+    <li><div><b>Reporter.</b> Builds the report checklist by checklist, computes a triage score, drafts the deficiency letter with clause citations, and raises alerts.</div></li>
+    <li><div><b>Officer decision.</b> The officer accepts, dismisses or escalates each finding, with a mandatory reason. Every action is written to the hash-chained ledger and becomes labelled data.</div></li>
+  </ol>
+</section>
+
+<section id="agents">
+  <h2><span class="n">04</span>Agents</h2>
+  <p class="sub">Each agent has a narrow job, typed inputs and outputs, a fixed tool list, and a guardrail. Most of the work is done by deterministic tools; the LLM fills gaps.</p>
+  <div class="grid2">
+    <div class="card"><h4>Intake and planner <span class="tag t-agent">rules</span></h4><p class="role">Works out what this application has to prove.</p>
+      <dl><dt>Inputs</dt><dd>Application JSON, category, academic session</dd>
+      <dt>Tools</dt><dd>Checklist registry, prior-records adapter (previous EoA, approved intake, TER status)</dd>
+      <dt>Outputs</dt><dd>Task plan (document → checks), completeness findings for missing, extra or mis-slotted uploads</dd>
+      <dt>Guardrail</dt><dd>Fully deterministic. The LLM only helps classify a free-text request when the category is ambiguous, and an officer confirms the result.</dd></dl></div>
+    <div class="card"><h4>Doc reader <span class="tag t-agent">models + LLM</span></h4><p class="role">Turns uploads into facts with coordinates.</p>
+      <dl><dt>Inputs</dt><dd>Page renders, embedded text layer, document slot</dd>
+      <dt>Tools</dt><dd>Layout classifier, PaddleOCR and an Indic OCR model, Table Transformer or Docling for tables, LLM with JSON-schema decoding per document type</dd>
+      <dt>Outputs</dt><dd>Facts with page, bbox, confidence and <code>as_of</code>. Values are normalised: dates, areas (acre, hectare, sq m), currency, names</dd>
+      <dt>Guardrail</dt><dd>Grounding check: each LLM-extracted value must overlap OCR tokens on the cited bbox, otherwise its confidence is capped. Document text is treated as untrusted data.</dd></dl></div>
+    <div class="card"><h4>Forensics <span class="tag t-agent">tools</span></h4><p class="role">Collects authenticity signals. Never issues verdicts.</p>
+      <dl><dt>Inputs</dt><dd>Original file bytes, renders, detected stamp and signature crops</dd>
+      <dt>Tools</dt><dd>pikepdf (incremental updates, producer and dates), pyHanko (DSC chain, changes after signing), text-layer vs OCR diff, font inventory, pyzbar QR decode, copy-move and ELA, Qdrant near-duplicate lookup</dd>
+      <dt>Outputs</dt><dd><code>anomaly_signal</code> findings with a strength (strong, medium, weak) and the evidence crop</dd>
+      <dt>Guardrail</dt><dd>The word "forged" never appears. Weak signals alone cannot raise severity above low.</dd></dl></div>
+    <div class="card"><h4>Source verifier <span class="tag t-agent">connectors</span></h4><p class="role">Checks documents against the issuer, where a route exists.</p>
+      <dl><dt>Inputs</dt><dd>Document type, identifiers, QR payloads, signed PDFs</dd>
+      <dt>Tools</dt><dd>Connector registry (section 11) with retries, rate limits and a circuit breaker</dd>
+      <dt>Outputs</dt><dd><code>VerificationResult</code>: source, reference ID, timestamp, field-by-field match, one of the six statuses</dd>
+      <dt>Guardrail</dt><dd>Never infers <code>verified</code>. Mock connectors are labelled "mock" in the UI and the database. QR URLs are fetched only from allowlisted issuer domains.</dd></dl></div>
+    <div class="card"><h4>Confidence gate <span class="tag t-gate">human</span></h4><p class="role">Stops a blurred digit from becoming a mismatch.</p>
+      <dl><dt>Trigger</dt><dd>Field confidence below its type threshold (identifiers stricter than names)</dd>
+      <dt>Action</dt><dd>LangGraph interrupt. The officer sees the crop and the value, then confirms or corrects</dd>
+      <dt>Outputs</dt><dd>New fact version with <code>source = human</code>. The original is kept and marked superseded</dd>
+      <dt>Why</dt><dd>Keeps extraction confidence separate from the regulatory outcome, as the dossier asks</dd></dl></div>
+    <div class="card"><h4>Cross-check <span class="tag t-agent">graph</span></h4><p class="role">Finds where documents and records disagree.</p>
+      <dl><dt>Inputs</dt><dd>Facts from the form, documents, prior records and issuers</dd>
+      <dt>Tools</dt><dd>Identifier-first matching, then trigram blocking and Splink probabilistic linkage, Indic transliteration, Neo4j pattern queries</dd>
+      <dt>Outputs</dt><dd><code>potential_discrepancy</code> findings that show every conflicting value with its date and source</dd>
+      <dt>Guardrail</dt><dd>Values are compared only for the same date. Ambiguous entity matches go to review instead of being merged automatically.</dd></dl></div>
+    <div class="card"><h4>Compliance engine <span class="tag t-agent">rules + CV</span></h4><p class="role">Applies the handbook, version by version.</p>
+      <dl><dt>Inputs</dt><dd>Resolved fact set, <code>rulepack@APH-edition</code></dd>
+      <dt>Tools</dt><dd>YAML rule evaluator, infrastructure vision: photo reuse, EXIF date and GPS, room-type classifier, floor-plan area extraction</dd>
+      <dt>Outputs</dt><dd>Pass, fail or insufficient evidence for each rule. <code>confirmed_violation</code> only when every input is verified or human-confirmed</dd>
+      <dt>Guardrail</dt><dd>Vision output is always advisory and can only request more evidence or an inspection.</dd></dl></div>
+    <div class="card"><h4>Critic <span class="tag t-gate">quality gate</span></h4><p class="role">The reason the report can be trusted.</p>
+      <dl><dt>Checks</dt><dd>Evidence resolves to a stored crop. Rule and version exist. No two findings contradict. Wording is neutral (no "fraud", no "fake")</dd>
+      <dt>Action</dt><dd>Drops or downgrades failing findings. Sends work back to Cross-check once, then routes to a human</dd>
+      <dt>Outputs</dt><dd>Explainability coverage: the share of findings with full evidence and a rule. This becomes a headline metric</dd></dl></div>
+    <div class="card"><h4>Reporter <span class="tag t-agent">LLM</span></h4><p class="role">Writes for the scrutiny officer, not for the model.</p>
+      <dl><dt>Inputs</dt><dd>Findings that passed the Critic, checklist, APH clauses retrieved from Qdrant</dd>
+      <dt>Outputs</dt><dd>Validation report grouped by checklist item, a triage score with reasons, a deficiency letter draft citing clauses, alerts</dd>
+      <dt>Guardrail</dt><dd>Only drafts. Nothing is sent to an institution until an officer approves it.</dd></dl></div>
+  </div>
+  <div class="note ok"><b>Why a graph and not a chain.</b> The Doc reader, Forensics and Verifier are independent, so they run in parallel per document. Only Cross-check needs all three. The Critic loop and the two human interrupts need a state machine with checkpoints. That is what LangGraph with a Postgres checkpointer provides, and it also gives replayable runs for audit.</div>
+</section>
+
+<section id="data">
+  <h2><span class="n">05</span>Data layer</h2>
+  <p class="sub">Each store does the one thing it is best at. Postgres holds the truth. Neo4j and Qdrant are projections fed by a transactional outbox, so they can be rebuilt from scratch at any time.</p>
+  <div class="grid3">
+    <div class="card"><h4>PostgreSQL <span class="tag t-ok">truth</span></h4><p class="role">Relational integrity and audit.</p>
+      <dl><dt>Holds</dt><dd>Applications, documents, facts (versioned), rules, findings, verification attempts, reviews, audit ledger, LangGraph checkpoints</dd>
+      <dt>Why</dt><dd>ACID transactions, row-level security by region and assignment, mature backups, JSONB for flexible fact values</dd></dl></div>
+    <div class="card"><h4>Neo4j <span class="tag t-ok">relationships</span></h4><p class="role">Questions that span institutions.</p>
+      <dl><dt>Holds</dt><dd>Entity layer (institution, trust, faculty, land, FDR, signatory, stamp, photo) and evidence layer (fact, page, rule, finding)</dd>
+      <dt>Why</dt><dd>Multi-hop pattern queries like "same faculty, two colleges, same session" are a few lines of Cypher and slow, deep joins in SQL</dd></dl></div>
+    <div class="card"><h4>Qdrant <span class="tag t-ok">similarity</span></h4><p class="role">"Have we seen this before?"</p>
+      <dl><dt>Holds</dt><dd>APH clause text, page text, stamp and signature crops, infrastructure photos, extraction examples</dd>
+      <dt>Why</dt><dd>Named vectors with payload filters (session, institution, doc type) keep searches scoped. HNSW is fast at any scale this needs</dd></dl></div>
+    <div class="card"><h4>MinIO <span class="tag t-n">blobs</span></h4><p class="role">Originals and evidence.</p>
+      <dl><dt>Holds</dt><dd><code>raw/</code> with object lock (WORM), <code>pages/</code>, <code>crops/</code></dd>
+      <dt>Why</dt><dd>S3 API, server-side encryption, short-lived presigned URLs for the console. Blobs stay out of the databases</dd></dl></div>
+    <div class="card"><h4>Redis <span class="tag t-n">transient</span></h4><p class="role">Work in flight.</p>
+      <dl><dt>Holds</dt><dd>Celery broker, connector rate-limit counters, short-lived caches</dd>
+      <dt>Why</dt><dd>Nothing here is the system of record, so it can be lost without losing data</dd></dl></div>
+    <div class="card"><h4>Sync pattern <span class="tag t-n">outbox</span></h4><p class="role">How the stores stay consistent.</p>
+      <dl><dt>Write</dt><dd>Fact or finding insert plus an <code>outbox</code> row in one transaction</dd>
+      <dt>Project</dt><dd>A worker reads the outbox, runs <code>MERGE</code> in Neo4j and upserts in Qdrant, keyed by event ID</dd>
+      <dt>Recover</dt><dd>Replay the outbox from zero to rebuild both projections</dd></dl></div>
+  </div>
+</section>
+
+<section id="schemas">
+  <h2><span class="n">06</span>Schemas</h2>
+  <h3>PostgreSQL core tables</h3>
+<pre class="code"><span class="k">CREATE TABLE</span> documents (
+  id uuid <span class="k">PRIMARY KEY</span>, application_id uuid <span class="k">REFERENCES</span> applications,
+  checklist_slot text, doc_type text, doc_type_conf real,
+  sha256 char(64) <span class="k">UNIQUE</span>, object_key text, page_count int,
+  uploaded_at timestamptz, status text);
+
+<span class="k">CREATE TABLE</span> facts (
+  id uuid <span class="k">PRIMARY KEY</span>, application_id uuid, document_id uuid,
+  key text,                 <span class="c">-- e.g. land.total_area, faculty.count</span>
+  value jsonb, value_norm jsonb, unit text,
+  page int, bbox real[4], extractor text, confidence real,
+  as_of date,               <span class="c">-- the date the source says this was true</span>
+  recorded_at timestamptz <span class="k">DEFAULT</span> now(),
+  superseded_by uuid,       <span class="c">-- officer corrections create a new version</span>
+  source text <span class="k">CHECK</span> (source <span class="k">IN</span> (<span class="s">'form','document','record','issuer','human'</span>)));
+
+<span class="k">CREATE TABLE</span> findings (
+  id uuid <span class="k">PRIMARY KEY</span>, application_id uuid, region text,
+  rule_id text, rule_version int, aph_ref text,
+  finding_class text <span class="k">CHECK</span> (finding_class <span class="k">IN</span> (<span class="s">'completeness_gap','validity_gap',
+    'potential_discrepancy','anomaly_signal','confirmed_violation'</span>)),
+  severity text, confidence real, summary text,
+  status text <span class="k">DEFAULT</span> <span class="s">'open'</span>,   <span class="c">-- open | accepted | dismissed | escalated | rectified</span>
+  created_by text);              <span class="c">-- rule:&lt;id&gt; | agent:&lt;name&gt;</span>
+
+<span class="k">CREATE TABLE</span> finding_evidence (finding_id uuid, fact_id uuid, crop_key text, role text);
+
+<span class="k">CREATE TABLE</span> verification_attempts (
+  id uuid <span class="k">PRIMARY KEY</span>, document_id uuid, connector text, ref_id text,
+  requested_at timestamptz, responded_at timestamptz,
+  status text <span class="k">CHECK</span> (status <span class="k">IN</span> (<span class="s">'verified','mismatch','expired','pending',
+    'source_unavailable','manual_review'</span>)),
+  field_matches jsonb, response_digest char(64), is_mock boolean);
+
+<span class="k">CREATE TABLE</span> audit_log (
+  seq bigserial <span class="k">PRIMARY KEY</span>, at timestamptz <span class="k">DEFAULT</span> now(), actor text,
+  action text, entity text, entity_id uuid, payload jsonb,
+  prev_hash char(64), hash char(64));   <span class="c">-- hash = sha256(prev_hash || canonical(row))</span>
+
+<span class="k">ALTER TABLE</span> findings <span class="k">ENABLE ROW LEVEL SECURITY</span>;
+<span class="k">CREATE POLICY</span> by_region <span class="k">ON</span> findings <span class="k">USING</span> (region = current_setting(<span class="s">'app.region'</span>));</pre>
+
+  <h3>Neo4j graph model</h3>
+  <div class="tbl"><table>
+    <thead><tr><th>Layer</th><th>Nodes</th><th>Relationships (with properties)</th></tr></thead>
+    <tbody>
+      <tr><td>Entity</td><td><code>Institution{aicte_id}</code>, <code>Trust{reg_no}</code>, <code>Person{faculty_id, pan_hash}</code>, <code>LandParcel{state, district, survey_no}</code>, <code>FDR{bank, fdr_hash}</code>, <code>Signatory</code>, <code>StampImage{phash}</code>, <code>Photo{phash}</code></td>
+        <td><code>RUN_BY{from,to}</code>, <code>EMPLOYS{session,from,to,source_doc}</code>, <code>OWNS|LEASES{area,from,to}</code>, <code>PLEDGED{session}</code>, <code>SIGNED_BY</code>, <code>BEARS</code>, <code>NEAR_DUPLICATE{sim}</code></td></tr>
+      <tr><td>Evidence</td><td><code>Application</code>, <code>Document{sha256}</code>, <code>Page</code>, <code>Fact</code>, <code>Rule{id,version}</code>, <code>Finding</code>, <code>Review</code></td>
+        <td><code>HAS_DOC</code>, <code>EXTRACTED_FROM{bbox}</code>, <code>CONFLICTS_WITH</code>, <code>CHECKED_BY</code>, <code>CITES</code>, <code>VERIFIED_BY</code>, <code>DECIDED_BY</code></td></tr>
+    </tbody></table></div>
+  <p>Personal identifiers such as PAN go into the graph only as salted hashes. Matching still works, and the graph never holds the raw number.</p>
+
+  <h3>Qdrant collections</h3>
+  <div class="tbl"><table>
+    <thead><tr><th>Collection</th><th>Vector</th><th>Payload filters</th><th>Used for</th></tr></thead>
+    <tbody>
+      <tr><td><code>aph_clauses</code></td><td>Multilingual text (bge-m3)</td><td>edition, section, category</td><td>Clause citations in reports, help when drafting new rules</td></tr>
+      <tr><td><code>doc_pages</code></td><td>Page text</td><td>session, institution, doc_type</td><td>Copied or templated affidavits across institutions</td></tr>
+      <tr><td><code>stamps_signatures</code></td><td>Image (DINOv2), pHash in payload</td><td>session, issuer claimed</td><td>The same seal pasted across documents or trusts</td></tr>
+      <tr><td><code>infra_photos</code></td><td>Image (CLIP or DINOv2)</td><td>institution, claimed room, EXIF date</td><td>One lab photo submitted by two colleges, room-type checks</td></tr>
+      <tr><td><code>extraction_examples</code></td><td>Page layout and text</td><td>doc_type, state</td><td>Few-shot examples for classifying and extracting unfamiliar formats</td></tr>
+    </tbody></table></div>
+</section>
+
+<section id="findings">
+  <h2><span class="n">07</span>Findings and status model</h2>
+  <p class="sub">Two independent axes. What kind of problem it is, and what the issuer said. Merging them is how systems end up calling a blurry scan "fake".</p>
+  <div class="tbl"><table>
+    <thead><tr><th>Finding class</th><th>Meaning</th><th>Can be raised by</th></tr></thead>
+    <tbody>
+      <tr><td><span class="tag t-n">completeness_gap</span></td><td>A required item is missing, unreadable or in the wrong slot</td><td>Intake</td></tr>
+      <tr><td><span class="tag t-mid">validity_gap</span></td><td>The document has expired, or expires before the session starts</td><td>Compliance</td></tr>
+      <tr><td><span class="tag t-mid">potential_discrepancy</span></td><td>Values disagree across form, documents or records and need an explanation</td><td>Cross-check</td></tr>
+      <tr><td><span class="tag t-mid">anomaly_signal</span></td><td>Forensic or similarity indicator. Preliminary only</td><td>Forensics, Qdrant lookups</td></tr>
+      <tr><td><span class="tag t-bad">confirmed_violation</span></td><td>A deterministic rule failed on verified or officer-confirmed inputs</td><td>Compliance, with officer acceptance</td></tr>
+    </tbody></table></div>
+  <div class="tbl"><table>
+    <thead><tr><th>Verification status</th><th>When</th></tr></thead>
+    <tbody>
+      <tr><td><span class="tag t-ok">verified</span></td><td>The issuer returned a record and every compared field matched</td></tr>
+      <tr><td><span class="tag t-bad">mismatch</span></td><td>The issuer returned a record and at least one field differs</td></tr>
+      <tr><td><span class="tag t-mid">expired</span></td><td>The issuer record exists but is no longer valid</td></tr>
+      <tr><td><span class="tag t-n">pending</span></td><td>The request was sent and no answer has arrived yet</td></tr>
+      <tr><td><span class="tag t-n">source_unavailable</span></td><td>No route exists, or the source is down after retries</td></tr>
+      <tr><td><span class="tag t-mid">manual_review</span></td><td>Inconclusive, or the document type has no automated route</td></tr>
+    </tbody></table></div>
+  <h3>Example finding</h3>
+<pre class="code">{
+  <span class="k">"id"</span>: <span class="s">"f_8c21"</span>, <span class="k">"application"</span>: <span class="s">"EOA-2026-0142"</span>,
+  <span class="k">"class"</span>: <span class="s">"potential_discrepancy"</span>, <span class="k">"severity"</span>: <span class="s">"medium"</span>,
+  <span class="k">"rule"</span>: { <span class="k">"id"</span>: <span class="s">"XDOC.LAND_AREA.FORM_VS_DEED"</span>, <span class="k">"version"</span>: 2, <span class="k">"aph_ref"</span>: <span class="s">"APH 2024-27 §[fill in]"</span> },
+  <span class="k">"summary"</span>: <span class="s">"Form declares 5.00 acres; sale deed shows 3.20 acres for the same survey number."</span>,
+  <span class="k">"evidence"</span>: [
+    { <span class="k">"fact"</span>: <span class="s">"form.land.total_area"</span>, <span class="k">"value"</span>: <span class="s">"5.00 acre"</span>, <span class="k">"source"</span>: <span class="s">"form"</span> },
+    { <span class="k">"fact"</span>: <span class="s">"deed.land.total_area"</span>, <span class="k">"value"</span>: <span class="s">"3.20 acre"</span>, <span class="k">"doc"</span>: <span class="s">"sale_deed.pdf"</span>,
+      <span class="k">"page"</span>: 3, <span class="k">"bbox"</span>: [112, 640, 298, 662], <span class="k">"confidence"</span>: 0.97, <span class="k">"crop"</span>: <span class="s">"crops/f_8c21_1.png"</span> }
+  ],
+  <span class="k">"suggested_action"</span>: <span class="s">"Request additional land documents or a clarification"</span>,
+  <span class="k">"status"</span>: <span class="s">"open"</span>
+}</pre>
+</section>
+
+<section id="rules">
+  <h2><span class="n">08</span>Rules as code</h2>
+  <p class="sub">Every handbook requirement becomes a YAML file with its clause reference, inputs, logic, messages and test cases. A new APH edition means a new rule pack, and old applications can be re-run against it.</p>
+<pre class="code"><span class="k">id</span>: EOA.FIRE_NOC.VALIDITY
+<span class="k">version</span>: 3
+<span class="k">aph_ref</span>: <span class="s">"APH 2024-27, §[take exact clause from handbook]"</span>
+<span class="k">applies_to</span>:
+  <span class="k">categories</span>: [EOA, INTAKE_INCREASE, NEW_PROGRAMME]
+  <span class="k">sessions</span>: [<span class="s">"2026-27"</span>]
+<span class="k">inputs</span>:
+  - { <span class="k">fact</span>: fire_noc.valid_until, <span class="k">min_confidence</span>: 0.90 }
+  - { <span class="k">fact</span>: session.start_date }
+<span class="k">assert</span>: <span class="s">"fire_noc.valid_until >= session.start_date"</span>
+<span class="k">on_fail</span>:
+  <span class="k">class</span>: validity_gap
+  <span class="k">severity</span>: high
+  <span class="k">message</span>: <span class="s">"Fire NOC expires on {fire_noc.valid_until}, before the {session} session starts."</span>
+<span class="k">on_insufficient_evidence</span>: { <span class="k">route</span>: field_review }
+<span class="k">tests</span>:
+  - { <span class="k">name</span>: valid,       <span class="k">facts</span>: { fire_noc.valid_until: 2027-06-30, session.start_date: 2026-08-01 }, <span class="k">expect</span>: pass }
+  - { <span class="k">name</span>: lapses_early, <span class="k">facts</span>: { fire_noc.valid_until: 2026-07-15, session.start_date: 2026-08-01 }, <span class="k">expect</span>: fail }</pre>
+  <p><b>Rule types to cover in the prototype.</b> Presence (the item is in the checklist), validity (date in range), threshold (a numeric norm from the APH), cross-document equality with tolerance (form vs deed), and temporal consistency (the faculty count on the form matches the roster as of the same date).</p>
+  <div class="note"><b>Do not invent norms.</b> Every threshold, ratio and clause number must come from the actual APH text. Wherever the team has not confirmed a clause, leave the <code>[fill in]</code> marker in the rule file and say so in the demo. Judges respect that more than a confident wrong number.</div>
+</section>
+
+<section id="fraud">
+  <h2><span class="n">09</span>Fraud and anomaly patterns</h2>
+  <p class="sub">The cross-institution layer is the differentiator. A single-document tool cannot see any of these.</p>
+  <div class="tbl"><table>
+    <thead><tr><th>Pattern</th><th>Signal</th><th>Detected in</th><th>Class</th></tr></thead>
+    <tbody>
+      <tr><td>Ghost faculty</td><td>Same faculty ID or PAN hash on two rosters with overlapping dates</td><td>Neo4j</td><td>potential_discrepancy</td></tr>
+      <tr><td>Recycled land</td><td>Same survey number claimed by unrelated trusts</td><td>Neo4j</td><td>potential_discrepancy</td></tr>
+      <tr><td>Reused FDR</td><td>Same FDR number pledged by two institutions in one session</td><td>Neo4j</td><td>potential_discrepancy</td></tr>
+      <tr><td>Pasted seal</td><td>Stamp crop near-identical across documents from different issuers</td><td>Qdrant</td><td>anomaly_signal</td></tr>
+      <tr><td>Borrowed infrastructure</td><td>Lab or classroom photo matches another institution's upload</td><td>Qdrant</td><td>anomaly_signal</td></tr>
+      <tr><td>Template affidavits</td><td>Page text near-identical across trusts, with names swapped</td><td>Qdrant</td><td>anomaly_signal</td></tr>
+      <tr><td>Signatory clusters</td><td>One signatory across many unrelated institutions</td><td>Neo4j</td><td>anomaly_signal (advisory: notaries and CAs sign for many)</td></tr>
+    </tbody></table></div>
+<pre class="code"><span class="c">// Ghost faculty: same person, two institutions, overlapping employment in a session</span>
+<span class="k">MATCH</span> (p:Person)&lt;-[e1:EMPLOYS]-(i1:Institution),
+      (p)&lt;-[e2:EMPLOYS]-(i2:Institution)
+<span class="k">WHERE</span> i1.aicte_id &lt; i2.aicte_id <span class="k">AND</span> e1.session = e2.session
+  <span class="k">AND</span> e1.from &lt;= coalesce(e2.to, date()) <span class="k">AND</span> e2.from &lt;= coalesce(e1.to, date())
+<span class="k">RETURN</span> p.faculty_id, i1.aicte_id, i2.aicte_id, e1.source_doc, e2.source_doc
+
+<span class="c">// Recycled land parcel</span>
+<span class="k">MATCH</span> (l:LandParcel)&lt;-[:OWNS|LEASES]-(t1:Trust), (l)&lt;-[:OWNS|LEASES]-(t2:Trust)
+<span class="k">WHERE</span> t1.reg_no &lt; t2.reg_no
+<span class="k">RETURN</span> l.state, l.district, l.survey_no, t1.name, t2.name
+
+<span class="c">// Reused FDR in the same session</span>
+<span class="k">MATCH</span> (f:FDR)&lt;-[a:PLEDGED]-(i1:Institution), (f)&lt;-[b:PLEDGED]-(i2:Institution)
+<span class="k">WHERE</span> i1.aicte_id &lt; i2.aicte_id <span class="k">AND</span> a.session = b.session
+<span class="k">RETURN</span> f.bank, i1.aicte_id, i2.aicte_id</pre>
+</section>
+
+<section id="forensics">
+  <h2><span class="n">10</span>Forensic signals</h2>
+  <p class="sub">Ranked by how much each one should be trusted. Signals feed a triage score and are always listed individually, so an officer can see why something was flagged.</p>
+  <div class="tbl"><table>
+    <thead><tr><th>Signal</th><th>Strength</th><th>False-positive risk</th></tr></thead>
+    <tbody>
+      <tr><td>DSC invalid, or document changed after signing (pyHanko)</td><td><span class="tag t-bad">strong</span></td><td>Low. Check the trust chain is current</td></tr>
+      <tr><td>Issuer record mismatch</td><td><span class="tag t-bad">strong</span></td><td>Low, if the issuer source is authoritative</td></tr>
+      <tr><td>QR payload differs from the printed text</td><td><span class="tag t-bad">strong</span></td><td>Low</td></tr>
+      <tr><td>Incremental PDF update that changed text objects after creation</td><td><span class="tag t-mid">medium</span></td><td>Medium. Legitimate annotation tools also do this</td></tr>
+      <tr><td>Embedded text layer disagrees with OCR of the rendered page</td><td><span class="tag t-mid">medium</span></td><td>Medium on poor scans</td></tr>
+      <tr><td>Single span in a different font or size inside a uniform field</td><td><span class="tag t-mid">medium</span></td><td>Medium</td></tr>
+      <tr><td>Stamp crop near-duplicate across unrelated documents</td><td><span class="tag t-mid">medium</span></td><td>Medium. Same issuer may reuse a digital seal</td></tr>
+      <tr><td>Image editor recorded as the PDF producer</td><td><span class="tag t-n">weak</span></td><td>High. Scanner apps vary widely</td></tr>
+      <tr><td>Error level or noise inconsistency</td><td><span class="tag t-n">weak</span></td><td>High on recompressed scans</td></tr>
+      <tr><td>EXIF date or GPS disagrees with the claim</td><td><span class="tag t-n">weak</span></td><td>High. Metadata is often stripped</td></tr>
+    </tbody></table></div>
+</section>
+
+<section id="verification">
+  <h2><span class="n">11</span>Verification connectors</h2>
+  <p class="sub">One interface, many sources. Every attempt stores the source, reference ID, timestamp, field matches and a digest of the response.</p>
+  <div class="tbl"><table>
+    <thead><tr><th>Source</th><th>Covers</th><th>Mechanism</th><th>Prototype</th></tr></thead>
+    <tbody>
+      <tr><td>DigiLocker, including NAD academic awards</td><td>Faculty degrees, issuer-backed documents</td><td>Requester pull with consent. Needs onboarding as a requester</td><td><span class="tag t-n">mock, same schema</span></td></tr>
+      <tr><td>DSC and eSign</td><td>Digitally signed PDFs</td><td>Local cryptographic validation against the CCA root chain</td><td><span class="tag t-ok">real</span></td></tr>
+      <tr><td>QR and reference lookup</td><td>Certificates that carry a QR or reference number</td><td>Decode, compare to printed text, fetch only from allowlisted issuer domains</td><td><span class="tag t-ok">real decode</span> <span class="tag t-n">mock lookup</span></td></tr>
+      <tr><td>Prior AICTE records</td><td>Previous EoA, approved intake, faculty, TER, deficiencies</td><td>Authorised adapter to AICTE systems</td><td><span class="tag t-n">synthetic database</span></td></tr>
+      <tr><td>MCA21</td><td>Trusts run as companies, directors</td><td>Public master data</td><td><span class="tag t-n">mock</span></td></tr>
+      <tr><td>GSTIN and PAN</td><td>Entity identity</td><td>Authorised verification service</td><td><span class="tag t-n">mock</span></td></tr>
+      <tr><td>State land records, municipal fire and building</td><td>Land, fire NOC, completion certificates</td><td>Usually no API. A prefilled manual verification request goes to an officer</td><td><span class="tag t-mid">manual queue</span></td></tr>
+    </tbody></table></div>
+<pre class="code"><span class="k">class</span> Connector(Protocol):
+    name: str; covers: set[DocType]; is_mock: bool
+    <span class="k">async def</span> verify(self, doc: DocRef, claims: dict) -&gt; VerificationResult: ...
+<span class="c"># Every connector: timeout, 3 retries with backoff, circuit breaker -&gt; source_unavailable</span></pre>
+</section>
+
+<section id="security">
+  <h2><span class="n">12</span>Security, privacy and governance</h2>
+  <p class="sub">Present it as an institutional system, not an upload demo. This section is where a cybersecurity-minded team can stand out.</p>
+  <div class="tbl"><table>
+    <thead><tr><th>Role</th><th>Can</th><th>Cannot</th></tr></thead>
+    <tbody>
+      <tr><td>Institution applicant</td><td>Upload, run self-check, see its own report, respond to deficiencies</td><td>See forensic internals, other institutions, triage scores</td></tr>
+      <tr><td>Scrutiny officer</td><td>Review assigned applications, correct fields, accept, dismiss or escalate findings</td><td>Change rules, see other regions' data</td></tr>
+      <tr><td>Senior reviewer</td><td>Decide escalations, approve deficiency letters</td><td>Edit the audit ledger</td></tr>
+      <tr><td>Rule administrator</td><td>Author and test rule packs, which publish only after a second approval</td><td>Act on applications</td></tr>
+      <tr><td>Auditor</td><td>Read the ledger, replay runs, export reports</td><td>Change anything</td></tr>
+    </tbody></table></div>
+  <div class="grid2">
+    <div class="card"><h4>Untrusted documents</h4><p class="role">Uploads are attacker-controlled input.</p>
+      <dl><dt>Files</dt><dd>ClamAV, MIME sniffing, qpdf sanitisation, size and page limits, rendering in a sandboxed worker with no network</dd>
+      <dt>Prompts</dt><dd>Document text is passed to the LLM as data only. The extracting model has no tools. Output must match a JSON schema. Text that looks like instructions to a model is itself raised as an <code>anomaly_signal</code></dd>
+      <dt>SSRF</dt><dd>QR and reference URLs are fetched only from allowlisted issuer domains, through an egress proxy</dd></dl></div>
+    <div class="card"><h4>Data protection</h4><p class="role">Aligned with the DPDP Act, 2023.</p>
+      <dl><dt>Access</dt><dd>Keycloak OIDC with MFA for officials, Postgres row-level security by region and assignment</dd>
+      <dt>Crypto</dt><dd>TLS 1.3 and mTLS between services, MinIO server-side encryption, salted hashes for identifiers, raw Aadhaar never stored</dd>
+      <dt>Models</dt><dd>On-prem inference only. No document goes to an external AI service</dd>
+      <dt>Retention</dt><dd>Configurable per document class, with purpose limitation and logged downloads</dd></dl></div>
+    <div class="card"><h4>Tamper-evident audit</h4><p class="role">The ledger proves its own integrity.</p>
+      <dl><dt>Chain</dt><dd>Each row stores the hash of the previous row. Any edit breaks every hash after it</dd>
+      <dt>Anchor</dt><dd>A signed daily digest of the head hash is stored outside the database</dd>
+      <dt>Replay</dt><dd>Checkpoints, rule versions and model versions are logged, so any finding can be reproduced</dd></dl></div>
+    <div class="card"><h4>Human authority</h4><p class="role">Built into the code, not just the policy.</p>
+      <dl><dt>Letters</dt><dd>The system cannot send anything to an institution. Only an officer action can</dd>
+      <dt>Escalation</dt><dd><code>confirmed_violation</code> needs an officer acceptance with a reason</dd>
+      <dt>Wording</dt><dd>The Critic blocks accusatory terms in every generated text</dd></dl></div>
+  </div>
+</section>
+
+<section id="console">
+  <h2><span class="n">13</span>Reviewer console</h2>
+  <p class="sub">The screen judges will remember. Build it around one officer clearing one application quickly.</p>
+  <div class="grid2">
+    <div class="card"><h4>Queue</h4><p class="role">Applications ordered by triage score, each with its top three reasons, SLA timer and open-item counts. Filter by category, region and status.</p></div>
+    <div class="card"><h4>Evidence split view</h4><p class="role">PDF.js on the left with bounding boxes highlighted. Extracted facts and findings on the right. Clicking a finding jumps to the exact page and region.</p></div>
+    <div class="card"><h4>Conflict view</h4><p class="role">The same fact from form, documents, prior records and issuers in one row, each with its date and source, so the officer can see whether a date explains the gap.</p></div>
+    <div class="card"><h4>Graph view</h4><p class="role">Neighbourhood of an entity drawn with Cytoscape.js. For example, a faculty member and every institution that lists them this session.</p></div>
+    <div class="card"><h4>Verification timeline</h4><p class="role">Each connector call with status, timestamp and reference ID. Mock sources are labelled.</p></div>
+    <div class="card"><h4>Decision bar</h4><p class="role">Accept, dismiss or escalate with a required reason. Draft deficiency letter with clause citations, editable before approval.</p></div>
+    <div class="card"><h4>Institution self-check</h4><p class="role">The applicant sees a fix list (missing items, expiring documents, form and document mismatches) before submitting. No forensic details are exposed.</p></div>
+    <div class="card"><h4>Metrics board</h4><p class="role">Precision, recall, verification coverage, explainability coverage and time per application, computed live on the test set.</p></div>
+  </div>
+</section>
+
+<section id="stack">
+  <h2><span class="n">14</span>Tech stack</h2>
+  <div class="tbl"><table>
+    <thead><tr><th>Layer</th><th>Choice</th><th>Why</th></tr></thead>
+    <tbody>
+      <tr><td>API</td><td>FastAPI, Pydantic</td><td>Same language as the ML stack, typed schemas shared with agents</td></tr>
+      <tr><td>Orchestration</td><td>LangGraph with Postgres checkpointer, Celery workers</td><td>Interrupts for human review, replayable runs, parallel per-document work</td></tr>
+      <tr><td>OCR and layout</td><td>PaddleOCR, Docling, Tesseract with Indic models, Table Transformer</td><td>Open source, runs on-prem, handles regional scripts and tables</td></tr>
+      <tr><td>LLM</td><td>An open-weight instruct model served by vLLM with guided JSON decoding</td><td>Data stays on-prem. Schema-constrained output reduces parsing failures</td></tr>
+      <tr><td>Embeddings</td><td>bge-m3 for text, DINOv2 or CLIP for images, imagehash for pHash</td><td>Multilingual text and robust near-duplicate images</td></tr>
+      <tr><td>Forensics</td><td>pikepdf, pyHanko, ExifTool, OpenCV, pyzbar</td><td>Mature libraries. Each signal can be explained</td></tr>
+      <tr><td>Entity resolution</td><td>rapidfuzz, Splink, indic-transliteration</td><td>Handles abbreviations and spellings across scripts</td></tr>
+      <tr><td>Stores</td><td>PostgreSQL 16, Neo4j 5, Qdrant, MinIO, Redis</td><td>See section 05</td></tr>
+      <tr><td>Identity</td><td>Keycloak</td><td>OIDC, roles, MFA, and it is what government deployments commonly use</td></tr>
+      <tr><td>Frontend</td><td>Next.js, PDF.js, Cytoscape.js, TanStack Table</td><td>Evidence overlay, graph view and dense review tables</td></tr>
+      <tr><td>Observability</td><td>OpenTelemetry, Prometheus and Grafana, Langfuse</td><td>Traces across agents, LLM cost and latency per step</td></tr>
+    </tbody></table></div>
+</section>
+
+<section id="deploy">
+  <h2><span class="n">15</span>Deployment and scale</h2>
+<pre class="code"><span class="c"># docker compose services for the demo (single GPU machine)</span>
+gateway      api        supervisor   worker-ocr  x2   worker-forensics
+worker-verify  projector  vllm (GPU)   vision (GPU)   console
+postgres     neo4j      qdrant       minio       redis    keycloak
+clamav       grafana    langfuse     mock-issuers</pre>
+  <ul>
+    <li><b>Scale by document, not application.</b> OCR, forensics and verification workers scale horizontally. Tasks are keyed by SHA-256, so retries never duplicate work.</li>
+    <li><b>Peak season.</b> The portal adapter supports batch pulls with backpressure, and the triage score lets the riskiest applications reach officers first.</li>
+    <li><b>GPU budget.</b> One node serves vLLM and the vision models. Most pages never reach the LLM, because OCR plus schema templates resolve them.</li>
+    <li><b>Integration path.</b> Standalone service first, then a read-only adapter for a pilot regional office, then deeper integration subject to AICTE's security review. Kubernetes manifests mirror the compose services.</li>
+  </ul>
+</section>
+
+<section id="demo">
+  <h2><span class="n">16</span>Demo plan</h2>
+  <p class="sub">Synthetic data only. About 20 institutions across three categories (EoA, intake increase, new programme), around 25 documents each, generated from templates and then degraded to look scanned: rotation, blur, JPEG artefacts, stamps over text.</p>
+  <div class="tbl"><table>
+    <thead><tr><th>Planted fault</th><th>Caught by</th><th>Expected result</th></tr></thead>
+    <tbody>
+      <tr><td>Fire NOC date edited with an incremental save</td><td>Forensics, then Compliance</td><td>anomaly_signal (medium), validity_gap</td></tr>
+      <tr><td>Form says 5.00 acres, deed says 3.20 acres</td><td>Cross-check</td><td>potential_discrepancy with both crops</td></tr>
+      <tr><td>One faculty member on two rosters in the same session</td><td>Cross-check (Neo4j)</td><td>potential_discrepancy across institutions</td></tr>
+      <tr><td>Same FDR pledged by two institutions</td><td>Cross-check (Neo4j)</td><td>potential_discrepancy</td></tr>
+      <tr><td>Classroom photo reused from another college</td><td>Compliance (Qdrant)</td><td>anomaly_signal, request more evidence</td></tr>
+      <tr><td>One seal pasted onto affidavits of three trusts</td><td>Forensics (Qdrant)</td><td>anomaly_signal</td></tr>
+      <tr><td>Missing affidavit</td><td>Intake</td><td>completeness_gap, instantly</td></tr>
+      <tr><td>Building completion certificate expired</td><td>Compliance</td><td>validity_gap</td></tr>
+      <tr><td>Degree certificate disagrees with mock NAD record</td><td>Source verifier</td><td>mismatch</td></tr>
+      <tr><td>Signed PDF modified after signing</td><td>Forensics (pyHanko)</td><td>anomaly_signal (strong)</td></tr>
+      <tr><td>Blurred faculty count on a roster</td><td>Confidence gate</td><td>Officer corrects it live; no false mismatch</td></tr>
+      <tr><td>Hidden text telling the AI to approve the application</td><td>Doc reader</td><td>anomaly_signal; nothing else changes</td></tr>
+      <tr><td>Fire department source offline</td><td>Source verifier</td><td>source_unavailable, moved to manual queue</td></tr>
+    </tbody></table></div>
+  <p><b>Controls matter as much as faults.</b> Include five clean institutions with legitimate variation: abbreviated names, poor scans, a faculty member who really did move colleges mid-year. They must produce no high-severity findings. That is how the team proves the false-positive rate is low.</p>
+  <h3>Six-minute demo script</h3>
+  <div class="timeline">
+    <div><b>0:00</b><p>Officer queue. One application at the top, with its three reasons shown.</p></div>
+    <div><b>0:45</b><p>Self-check view. The institution sees a missing affidavit and an expiring NOC before submitting.</p></div>
+    <div><b>1:30</b><p>Split view. Click the land-area finding and jump to page 3 of the deed, with the bbox highlighted.</p></div>
+    <div><b>2:30</b><p>Graph view. One faculty member, two colleges, same session. Run the Cypher query live.</p></div>
+    <div><b>3:20</b><p>Confidence gate. Correct a blurred digit and watch the mismatch disappear.</p></div>
+    <div><b>4:00</b><p>Prompt-injection document. The model ignores the hidden text and flags it.</p></div>
+    <div><b>4:40</b><p>Rule replay. Change a threshold in a new rule version and re-run last session's applications.</p></div>
+    <div><b>5:20</b><p>Audit ledger and metrics board. Tamper with one row and show the chain break.</p></div>
+  </div>
+</section>
+
+<section id="metrics">
+  <h2><span class="n">17</span>Evaluation</h2>
+  <p class="sub">These are measurements to report on the test set, not results to claim in advance. Show the real numbers, including the bad ones.</p>
+  <div class="tbl"><table>
+    <thead><tr><th>Metric</th><th>How it is measured</th></tr></thead>
+    <tbody>
+      <tr><td>Field extraction accuracy</td><td>Extracted fields vs hand-labelled ground truth, per document type</td></tr>
+      <tr><td>Discrepancy precision and recall</td><td>Against the planted-fault list</td></tr>
+      <tr><td>False-positive rate</td><td>High-severity findings on the clean control institutions</td></tr>
+      <tr><td>Verification coverage</td><td>Share of documents with at least one runnable check</td></tr>
+      <tr><td>Explainability coverage</td><td>Share of findings that passed the Critic with evidence and a rule</td></tr>
+      <tr><td>Time per application</td><td>Pipeline time, compared with a teammate reviewing three applications by hand</td></tr>
+      <tr><td>Alert latency</td><td>Time from upload to the first completeness alert</td></tr>
+    </tbody></table></div>
+</section>
+
+<section id="pitch">
+  <h2><span class="n">18</span>Pitch and jury questions</h2>
+  <h3>Slide storyline</h3>
+  <ol class="steps">
+    <li><div><b>AICTE's job.</b> Thousands of institutions, many documents each, category-specific rules that change by edition.</div></li>
+    <li><div><b>The gap.</b> The layers exist separately (OCR, forensics, KYC, DigiLocker). Nothing joins them around AICTE's rules with evidence.</div></li>
+    <li><div><b>EvidenceGraph.</b> The architecture diagram, and one line: agents gather, rules decide, officers rule.</div></li>
+    <li><div><b>Live demo.</b> The six-minute script.</div></li>
+    <li><div><b>Safeguards.</b> Two-axis status model, Critic, human gates, on-prem models, tamper-evident ledger.</div></li>
+    <li><div><b>Results.</b> Measured numbers on the test set, with their limits stated.</div></li>
+    <li><div><b>Rollout.</b> Self-check first (no risk to AICTE), then a read-only pilot with one regional office.</div></li>
+  </ol>
+  <h3>Questions to rehearse</h3>
+  <div class="qa">
+    <div><b>What if the AI is wrong?</b><p>It cannot take an adverse action. Low-confidence values go to a person first, the Critic removes unsupported findings, and every flag shows its evidence. Our false-positive rate on clean controls is on the metrics board.</p></div>
+    <div><b>Do you have access to AICTE's data?</b><p>No, and we don't assume it. Every source sits behind an adapter. The demo uses synthetic records and labelled mock connectors with the same schema as the real ones.</p></div>
+    <div><b>Why three databases?</b><p>Postgres is the truth and the audit. Neo4j answers questions across institutions that are impractical in SQL. Qdrant finds reused seals, photos and templated pages. Both projections can be rebuilt from Postgres.</p></div>
+    <div><b>Regional languages?</b><p>Indic OCR models, multilingual embeddings and transliteration-aware name matching. Low-confidence regional text goes to the confidence gate instead of being guessed.</p></div>
+    <div><b>Can't a good forger beat ELA?</b><p>Yes, which is why ELA is ranked as a weak signal. The strong signals are issuer verification, signature checks and cross-document and cross-institution inconsistencies, which editing a single image cannot hide.</p></div>
+    <div><b>Privacy?</b><p>On-prem models, role-based access with row-level security, hashed identifiers in the graph, encryption, logged downloads and configurable retention, aligned with the DPDP Act.</p></div>
+    <div><b>What happens when the handbook changes?</b><p>A new rule pack version, tested with its own fixtures. Old findings keep their rule version, and past applications can be replayed against the new pack.</p></div>
+    <div><b>Could a document manipulate your LLM?</b><p>Document text is data only. The extracting model has no tools and must return a fixed schema. Injected instructions are flagged. We show this live.</p></div>
+  </div>
+</section>
+
+<section id="build">
+  <h2><span class="n">19</span>Build plan</h2>
+  <p class="sub">For a six-person team. The hackathon itself is for integration and polish; the risky parts get done before it.</p>
+  <div class="tbl"><table>
+    <thead><tr><th>Owner</th><th>Scope</th></tr></thead>
+    <tbody>
+      <tr><td>A · Ingest and forensics</td><td>Gateway, ingestion, page pipeline, Forensics agent, Qdrant image collections</td></tr>
+      <tr><td>B · Extraction</td><td>OCR, classification, schemas per document type, Doc reader, confidence gate</td></tr>
+      <tr><td>C · Graph</td><td>Entity resolution, outbox projector, Neo4j model and fraud queries, Cross-check agent</td></tr>
+      <tr><td>D · Rules and verification</td><td>Rule pack from the APH, rule engine and tests, connector registry and mocks, Compliance agent</td></tr>
+      <tr><td>E · Console</td><td>Next.js reviewer console, evidence overlay, graph view, self-check view</td></tr>
+      <tr><td>F · Data, eval and pitch</td><td>Synthetic dataset and planted faults, evaluation harness, metrics board, deck and demo script</td></tr>
+    </tbody></table></div>
+  <div class="timeline">
+    <div><b>Before the hackathon</b><p>Synthetic dataset with ground truth. Rule pack for three categories with clause references. Docker Compose stack running. End-to-end path working for one document type.</p></div>
+    <div><b>Hours 0 to 8</b><p>All agents wired into the supervisor graph. Outbox projections live.</p></div>
+    <div><b>Hours 8 to 20</b><p>All document types extracted. Fraud queries and similarity lookups returning results. Critic and Reporter producing reports.</p></div>
+    <div><b>Hours 20 to 30</b><p>Console complete: queue, split view, graph view, decision bar, self-check.</p></div>
+    <div><b>Hours 30 to 36</b><p>Evaluation run, metrics frozen, demo rehearsed three times. A recorded backup video of the demo, in case the live run fails.</p></div>
+  </div>
+</section>
+
+<section id="risks">
+  <h2><span class="n">20</span>Risks and honest claims</h2>
+  <div class="tbl"><table>
+    <thead><tr><th>Risk</th><th>Mitigation</th></tr></thead>
+    <tbody>
+      <tr><td>Too many false positives</td><td>Confidence gate, signal strengths, controls in the test set, precision reported openly</td></tr>
+      <tr><td>Rules misread from the handbook</td><td>Clause reference and tests on every rule, second-person review, <code>[fill in]</code> markers left visible</td></tr>
+      <tr><td>Overclaiming integration</td><td>Say "designed for integration". Label every mock in the UI and in the deck</td></tr>
+      <tr><td>Unsourced statistics</td><td>Use only cited figures. Otherwise say "thousands of institutions, each with many documents"</td></tr>
+      <tr><td>GPU or model failure during the demo</td><td>Cached results for the demo set and a recorded fallback video</td></tr>
+      <tr><td>Scope creep</td><td>Three categories and about ten document types. Depth over breadth</td></tr>
+    </tbody></table></div>
+  <h3>Verify before the finals</h3>
+  <ul>
+    <li>Exact APH sections for each rule in the demo rule pack.</li>
+    <li>What the AICTE portal already validates, from its published user manuals and FAQs.</li>
+    <li>Whether NAD records are now accessed through DigiLocker, and what requester onboarding involves.</li>
+    <li>At least three pain points confirmed by a college administrator or a former scrutiny participant.</li>
+  </ul>
+</section>
+
+<footer>EvidenceGraph · architecture and build guide for SIH26261 (AICTE). Built on the team's research dossier and the problem statement. Prepared October 2026.</footer>
+</main>
+</div>
+
+<!--claude-mermaid-runtime-begin:3477-->
+<style>.mermaid-diagram{margin-block:4px}.mermaid-diagram svg{display:block;margin:0 auto;max-width:100%;height:auto}</style>
+<script src="/_runtime/mermaid-11.16.1.min.js"></script>
+<script>(function(){
+var CFG={"palettes":{"light":{"surface":"#f4efe4","text":"#42392e","line":"#8a7f6d","border":"#7a6c52","bg":"#fffdf8"},"dark":{"surface":"#262b34","text":"#f2f3f5","line":"#a8adb8","border":"#9aa4b8","bg":"#1f232b"}}};
+if(typeof mermaid==='undefined')return;
+var pres=Array.prototype.slice.call(document.querySelectorAll('pre.mermaid')).filter(function(p){if(p.hasAttribute('data-claude-mermaid-claimed'))return false;p.setAttribute('data-claude-mermaid-claimed','1');return true;});
+if(!pres.length)return;
+var mq=window.matchMedia?window.matchMedia('(prefers-color-scheme: dark)'):null;
+var root=document.documentElement;
+var items=pres.map(function(pre){
+var mount=document.createElement('div');mount.className='mermaid-diagram';
+return {pre:pre,mount:mount,src:pre.textContent||''};
+});
+var seq=0;
+var renderGen=0;
+var lastKey='';
+function pageBg(fallback){
+var els=[document.body,document.documentElement];
+for(var i=0;i<els.length;i++){
+var c=els[i]&&getComputedStyle(els[i]).backgroundColor;
+if(c&&c!=='transparent'&&c!=='rgba(0, 0, 0, 0)')return c;
+}
+return fallback;
+}
+function render(){
+var theme=root.getAttribute('data-theme');
+var dark=theme==='dark'||(!!(mq&&mq.matches)&&theme!=='light');
+var pal=dark?CFG.palettes.dark:CFG.palettes.light;
+var bg=pageBg(pal.bg);
+var key=(dark?'d':'l')+'|'+bg;
+if(key===lastKey)return;
+lastKey=key;
+var gen=++renderGen;
+var font=getComputedStyle(document.body).fontFamily||'sans-serif';
+var nat={useMaxWidth:false};
+mermaid.initialize({
+startOnLoad:false,securityLevel:'strict',theme:'base',
+flowchart:nat,sequence:nat,er:nat,state:nat,class:nat,pie:nat,
+gantt:nat,journey:nat,timeline:nat,gitGraph:nat,mindmap:nat,xyChart:nat,
+quadrantChart:nat,sankey:nat,c4:nat,requirement:nat,block:nat,
+packet:nat,kanban:nat,architecture:nat,radar:nat,
+themeVariables:{background:bg,mainBkg:pal.surface,primaryColor:pal.surface,
+primaryTextColor:pal.text,lineColor:pal.line,primaryBorderColor:pal.border,
+nodeBorder:pal.border,clusterBorder:pal.border,edgeLabelBackground:bg,
+clusterBkg:'rgba(127,127,127,0.07)',titleColor:pal.text,
+darkMode:dark,rowOdd:bg,rowEven:'rgba(127,127,127,0.07)',
+attributeBackgroundColorOdd:bg,attributeBackgroundColorEven:'rgba(127,127,127,0.07)',
+fontSize:'16px',fontFamily:font},
+themeCSS:'.node rect, .node circle, .node polygon, .node path, .cluster rect { stroke-width: 2px; }'
+});
+items.forEach(function(it){
+var id='claude-mermaid-'+seq++;
+mermaid.render(id,it.src).then(function(r){
+if(gen!==renderGen)return;
+var prev=it.pre.previousElementSibling;
+if(prev&&prev.className==='mermaid-diagram'&&prev!==it.mount)return;
+it.mount.innerHTML=r.svg;
+if(!it.mount.parentNode)it.pre.parentNode.insertBefore(it.mount,it.pre);
+it.pre.style.display='none';
+},function(){
+var scratch=document.getElementById(id);
+if(scratch)scratch.parentNode.removeChild(scratch);
+scratch=document.getElementById('d'+id);
+if(scratch)scratch.parentNode.removeChild(scratch);
+if(gen!==renderGen)return;
+if(it.mount.parentNode)it.mount.parentNode.removeChild(it.mount);
+it.pre.style.display='';
+});
+});
+}
+render();
+if(mq&&mq.addEventListener)mq.addEventListener('change',render);
+if(typeof MutationObserver!=='undefined')new MutationObserver(render).observe(root,{attributes:true,attributeFilter:['data-theme']});
+})();</script>
+<!--claude-mermaid-runtime-end-->
+
+</body></html>

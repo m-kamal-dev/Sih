@@ -1,0 +1,13 @@
+packages:
+  - "apps/web"
+  - "packages/*"
+
+dangerouslyAllowAllBuilds: true
+
+onlyBuiltDependencies:
+  - esbuild
+  - unrs-resolver
+  - "@tailwindcss/oxide"
+  - sharp
+  - lightningcss
+  - "@esbuild/win32-x64"

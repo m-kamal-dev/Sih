@@ -1,0 +1,25 @@
+# Graph rule (kind: graph): the same person does not work for two aided
+# institutions in the same session. Pairs come from the in-memory graph —
+# faculties are entities (Person nodes) with deterministic ids, so the same
+# person can be recognised across applications.
+id: ghost_faculty_cross_institution
+version: 1
+aph_ref: "[fill in: APH 2024-27 clause — faculty cannot count twice]"
+kind: graph
+graph_query: "MATCH (a:Institution)-[:employs]->(p:Person)<-[:employs]-(b:Institution) WHERE a <> b AND p.session = $session AND (a.periods.overlaps(b.periods)) RETURN p, a, b"
+applies_to:
+  categories: [EOA, INTAKE_INCREASE, NEW_PROGRAMME]
+  sessions: ["2026-27"]
+inputs: []
+assert: pairs_count == 0
+on_fail:
+  class: potential_discrepancy
+  severity: high
+  message: 'The same faculty member is employed by more than one institution this session: {pairs}.'
+tests:
+  - name: each faculty member works once
+    facts: { "__ghost_faculty_pairs": 0 }
+    expect: pass
+  - name: same person on two rosters, same session
+    facts: { "__ghost_faculty_pairs": 2 }
+    expect: fail
