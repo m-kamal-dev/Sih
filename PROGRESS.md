@@ -27,4 +27,5 @@ Gate commands (pnpm.exe is blocked by Windows App Control on this machine, so us
 - [x] Rule pack embedded in the engine (scripts/embed-rules.mjs); drift test keeps it equal to rules/ on disk
 - [x] Simulated serverless (rules/ folder hidden): 25 routes + APIs, 0 failures
 - [x] Removed dangerouslyAllowAllBuilds (pnpm 10 refused to install with it); lockfile verified with pnpm 10 --frozen-lockfile
+- [x] Host install failed with pnpm 12.9.1 (ERR_PNPM_IGNORED_BUILDS: esbuild, unrs-resolver): pnpm 11+ reads `allowBuilds`, not `onlyBuiltDependencies`. Added `allowBuilds`; clean `pnpm@12.9.1 install --frozen-lockfile` now runs both build scripts
 - [ ] Not verified: an actual Vercel/Render deploy (needs your account)

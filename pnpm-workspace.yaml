@@ -2,6 +2,15 @@ packages:
   - "apps/web"
   - "packages/*"
 
+# pnpm 11+ reads allowBuilds; pnpm 10 reads onlyBuiltDependencies. Keep both lists equal.
+allowBuilds:
+  esbuild: true
+  unrs-resolver: true
+  "@tailwindcss/oxide": true
+  sharp: true
+  lightningcss: true
+  "@esbuild/win32-x64": true
+
 onlyBuiltDependencies:
   - esbuild
   - unrs-resolver
