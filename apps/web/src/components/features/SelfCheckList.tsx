@@ -25,20 +25,20 @@ export function SelfCheckList({ appId }: SelfCheckListProps) {
 
   if (role !== 'applicant') {
     return (
-      <div style={{ padding: 24, color: 'var(--color-alert)', fontSize: 13 }}>
+      <div style={{ padding: 24, color: 'var(--color-danger-text)', fontSize: 13 }}>
         Access restricted — this view is only available to the applicant role.
       </div>
     );
   }
 
   if (isLoading) return <div style={{ padding: 16, display: 'flex', gap: 8, color: 'var(--color-text-muted)' }}><Spinner />Loading fix list…</div>;
-  if (error) return <div style={{ padding: 24, color: 'var(--color-alert)', fontSize: 13 }}>Could not load your list. <button onClick={() => refetch()} style={{ background: 'none', border: '1px solid var(--color-border)', borderRadius: 4, color: 'var(--color-text)', cursor: 'pointer' }}>Retry</button></div>;
+  if (error) return <div style={{ padding: 24, color: 'var(--color-danger-text)', fontSize: 13 }}>Could not load your list. <button onClick={() => refetch()} style={{ background: 'none', border: '1px solid var(--color-border)', borderRadius: 4, color: 'var(--color-text)', cursor: 'pointer' }}>Retry</button></div>;
 
   const findings = (data?.findings ?? []).filter((f) => f.findingClass !== 'anomaly_signal' && f.status === 'open');
 
   return (
     <div style={{ padding: 24 }}>
-      <div style={{ marginBottom: 16, padding: '10px 16px', background: 'color-mix(in srgb, var(--color-accent) 8%, transparent)', border: '1px solid var(--color-accent)', borderRadius: 8, fontSize: 13, color: 'var(--color-accent)' }}>
+      <div style={{ marginBottom: 16, padding: '10px 16px', background: 'color-mix(in srgb, var(--color-accent) 8%, transparent)', border: '1px solid var(--color-accent)', borderRadius: 8, fontSize: 13, color: 'var(--color-accent-text)' }}>
         This is your self-check summary. No triage details, forensic signals, or other institutions are shown here.
       </div>
 
@@ -56,7 +56,7 @@ export function SelfCheckList({ appId }: SelfCheckListProps) {
               </div>
               <div style={{ fontSize: 13, color: 'var(--color-text)', marginBottom: f.suggestedAction ? 8 : 0 }}>{f.summary}</div>
               {f.suggestedAction && (
-                <div style={{ fontSize: 12, color: 'var(--color-accent)', marginTop: 6 }}>
+                <div style={{ fontSize: 12, color: 'var(--color-accent-text)', marginTop: 6 }}>
                   <strong>Suggested action:</strong> {f.suggestedAction}
                 </div>
               )}

@@ -88,7 +88,7 @@ export function DecisionBar({ appId }: DecisionBarProps) {
             <FindingChip findingClass={selected.findingClass} />
             <h4 style={{ margin: '8px 0', fontSize: 14, color: 'var(--color-text)' }}>{selected.summary}</h4>
             {selected.detail && <p style={{ fontSize: 13, color: 'var(--color-text-muted)', lineHeight: 1.5 }}>{selected.detail}</p>}
-            {selected.suggestedAction && <p style={{ fontSize: 12, color: 'var(--color-accent)', fontStyle: 'italic' }}>▸ {selected.suggestedAction}</p>}
+            {selected.suggestedAction && <p style={{ fontSize: 12, color: 'var(--color-accent-text)', fontStyle: 'italic' }}>▸ {selected.suggestedAction}</p>}
           </div>
         ) : (
           <div style={{ color: 'var(--color-text-faint)', fontSize: 13 }}>Select a finding to review.</div>
@@ -129,7 +129,7 @@ export function DecisionBar({ appId }: DecisionBarProps) {
           })}
         </div>
         {lastResult && <div style={{ fontSize: 12, color: 'var(--color-verified)', marginTop: 4 }}>{lastResult}</div>}
-        {decideMutation.error instanceof Error && <div style={{ fontSize: 12, color: 'var(--color-alert)' }}>{decideMutation.error.message}</div>}
+        {decideMutation.error instanceof Error && <div style={{ fontSize: 12, color: 'var(--color-danger-text)' }}>{decideMutation.error.message}</div>}
       </div>
     </div>
   );

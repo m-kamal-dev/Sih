@@ -115,7 +115,7 @@ export function PipelineDAG({ events }: PipelineDAGProps) {
                   {AGENT_NODE_LABELS[node] ?? node}
                 </span>
                 {isHuman && (
-                  <span style={{ fontSize: 9, padding: '1px 5px', background: 'color-mix(in srgb, var(--color-accent) 15%, transparent)', color: 'var(--color-accent)', borderRadius: 3 }}>
+                  <span style={{ fontSize: 9, padding: '1px 5px', background: 'color-mix(in srgb, var(--color-accent) 15%, transparent)', color: 'var(--color-accent-text)', borderRadius: 3 }}>
                     HUMAN
                   </span>
                 )}

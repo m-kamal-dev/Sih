@@ -69,7 +69,7 @@ function FactRow({ fact, selected, onClick }: { fact: Fact; selected: boolean; o
       }}
     >
       <div style={{ display: 'flex', alignItems: 'center', gap: 8, marginBottom: 4 }}>
-        <span style={{ fontSize: 11, fontFamily: 'var(--font-mono)', color: 'var(--color-accent)' }}>{fact.key}</span>
+        <span style={{ fontSize: 11, fontFamily: 'var(--font-mono)', color: 'var(--color-accent-text)' }}>{fact.key}</span>
         {fact.supersededBy && (
           <span style={{ fontSize: 10, color: 'var(--color-text-faint)', padding: '1px 5px', border: '1px solid var(--color-border)', borderRadius: 3 }}>SUPERSEDED</span>
         )}

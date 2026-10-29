@@ -21,7 +21,7 @@ export function RulesAdmin() {
   });
 
   if (isLoading) return <div style={{ padding: 24, display: 'flex', gap: 8, color: 'var(--color-text-muted)' }}><Spinner />Loading rules…</div>;
-  if (error) return <div style={{ padding: 24, color: 'var(--color-alert)', fontSize: 13 }}>Could not load rules. <button onClick={() => refetch()} style={{ background: 'none', border: '1px solid var(--color-border)', borderRadius: 4, color: 'var(--color-text)', cursor: 'pointer' }}>Retry</button></div>;
+  if (error) return <div style={{ padding: 24, color: 'var(--color-danger-text)', fontSize: 13 }}>Could not load rules. <button onClick={() => refetch()} style={{ background: 'none', border: '1px solid var(--color-border)', borderRadius: 4, color: 'var(--color-text)', cursor: 'pointer' }}>Retry</button></div>;
 
   const rules = data?.rules ?? [];
 

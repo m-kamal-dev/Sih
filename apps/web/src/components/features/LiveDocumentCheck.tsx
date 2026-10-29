@@ -25,7 +25,7 @@ const LEVEL_COPY: Record<PdfAnalysis['level'], { label: string; color: string; m
   none: { label: 'Nothing unusual found', color: 'var(--color-verified)', meter: 0.06 },
   low: { label: 'Low attention', color: 'var(--color-pending)', meter: 0.33 },
   medium: { label: 'Medium attention', color: 'var(--color-validity)', meter: 0.66 },
-  high: { label: 'High attention', color: 'var(--color-alert)', meter: 1 },
+  high: { label: 'High attention', color: 'var(--color-danger-text)', meter: 1 },
 };
 
 const CLASS_PLAIN: Record<string, string> = {

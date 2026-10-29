@@ -134,7 +134,7 @@ export function AppShell({ children }: { children: React.ReactNode }) {
           <RoleSwitcher />
         </header>
 
-        <main id="main" tabIndex={-1} style={{ flex: 1, overflow: 'auto', paddingBottom: demoActive ? 200 : 0, outline: 'none' }}>
+        <main id="main" tabIndex={0} aria-label="Page content" style={{ flex: 1, overflow: 'auto', paddingBottom: demoActive ? 200 : 0 }}>
           {children}
         </main>
       </div>

@@ -54,7 +54,7 @@ export default function DemoPage() {
           ['/ledger', 'Audit Ledger'],
           ['/metrics', 'Metrics Dashboard'],
         ].map(([href, label]) => (
-          <Link key={href as string} href={href as string} style={{ fontSize: 13, color: 'var(--color-accent)', textDecoration: 'none' }}>→ {label as string}</Link>
+          <Link key={href as string} href={href as string} style={{ fontSize: 13, color: 'var(--color-accent-text)', textDecoration: 'none' }}>→ {label as string}</Link>
         ))}
       </div>
 

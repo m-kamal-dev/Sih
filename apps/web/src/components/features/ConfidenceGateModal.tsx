@@ -201,7 +201,7 @@ export function ConfidenceGateModal({ appId, fact, open, onClose }: ConfidenceGa
             </button>
           </div>
           {mutation.error instanceof Error && (
-            <div style={{ marginTop: 10, fontSize: 12, color: 'var(--color-alert)' }}>
+            <div style={{ marginTop: 10, fontSize: 12, color: 'var(--color-danger-text)' }}>
               {mutation.error.message}
             </div>
           )}

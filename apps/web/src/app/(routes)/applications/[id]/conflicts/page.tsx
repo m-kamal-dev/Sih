@@ -34,7 +34,7 @@ export default function ConflictsPage() {
             <span style={{ fontSize: 13, fontWeight: 600, color: 'var(--color-text)' }}>{conflict.label}</span>
             <span style={{ fontSize: 11, fontFamily: 'var(--font-mono)', color: 'var(--color-text-muted)' }}>{conflict.concept}</span>
             {conflict.divergentSameDate && (
-              <span style={{ marginLeft: 'auto', fontSize: 11, color: 'var(--color-alert)', padding: '2px 6px', background: 'color-mix(in srgb, var(--color-alert) 10%, transparent)', borderRadius: 3 }}>
+              <span style={{ marginLeft: 'auto', fontSize: 11, color: 'var(--color-danger-text)', padding: '2px 6px', background: 'color-mix(in srgb, var(--color-alert) 10%, transparent)', borderRadius: 3 }}>
                 DIVERGENT SAME DATE
               </span>
             )}

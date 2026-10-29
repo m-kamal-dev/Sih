@@ -81,7 +81,7 @@ export default function NetworkPage() {
   return (
     <div style={{ height: '100%', display: 'flex', flexDirection: 'column' }}>
       <div style={{ padding: '10px 16px', display: 'flex', gap: 14, alignItems: 'center', flexWrap: 'wrap', borderBottom: '1px solid var(--color-border)', background: 'var(--color-surface)' }}>
-        <span style={{ fontSize: 14, fontWeight: 600 }}>Risk Network</span>
+        <h1 style={{ fontSize: 18, margin: 0 }}>Linked institutions</h1>
         {data && <span style={{ fontSize: 12, color: 'var(--color-text-muted)' }}>{data.graph.nodes.length} entities · {data.rings.length} linked rings · {data.sharedEntityCount} shared entities. Linked rings are signals for review, not verdicts.</span>}
         <div style={{ marginLeft: 'auto', display: 'flex', gap: 6, flexWrap: 'wrap' }}>
           {types.map((t) => (

@@ -71,7 +71,7 @@ export function FindingsPanel({ appId, filterClass, onEvidenceSelect }: Findings
 
 function FindingCard({ finding, signalStrength, onEvidenceSelect }: { finding: Finding; signalStrength?: 'weak' | 'medium' | 'strong'; onEvidenceSelect?: (evidence: EvidenceRef) => void }) {
   const [expanded, setExpanded] = useState(false);
-  const sevColor = finding.severity === 'high' ? 'var(--color-alert)' : finding.severity === 'medium' ? 'var(--color-validity)' : 'var(--color-text-muted)';
+  const sevColor = finding.severity === 'high' ? 'var(--color-danger-text)' : finding.severity === 'medium' ? 'var(--color-validity)' : 'var(--color-text-muted)';
 
   return (
     <div style={{ padding: '12px 16px', borderBottom: '1px solid var(--color-border)' }}>
@@ -91,7 +91,7 @@ function FindingCard({ finding, signalStrength, onEvidenceSelect }: { finding: F
           )}
         </div>
         {finding.detail && (
-          <button onClick={() => setExpanded((v) => !v)} style={{ background: 'none', border: 'none', cursor: 'pointer', color: 'var(--color-text-muted)', flexShrink: 0 }}>
+          <button onClick={() => setExpanded((v) => !v)} aria-expanded={expanded} aria-label={expanded ? 'Hide details' : 'Show details'} style={{ background: 'none', border: 'none', cursor: 'pointer', color: 'var(--color-text-muted)', flexShrink: 0 }}>
             {expanded ? <ChevronDown size={14} /> : <ChevronRight size={14} />}
           </button>
         )}
@@ -102,7 +102,7 @@ function FindingCard({ finding, signalStrength, onEvidenceSelect }: { finding: F
         </div>
       )}
       {finding.suggestedAction && (
-        <div style={{ marginTop: 6, fontSize: 11, color: 'var(--color-accent)', fontStyle: 'italic' }}>
+        <div style={{ marginTop: 6, fontSize: 11, color: 'var(--color-accent-text)', fontStyle: 'italic' }}>
           ▸ {finding.suggestedAction}
         </div>
       )}
@@ -118,7 +118,7 @@ function FindingCard({ finding, signalStrength, onEvidenceSelect }: { finding: F
             type="button"
             onClick={() => onEvidenceSelect?.(evidence)}
             disabled={!onEvidenceSelect}
-            style={{ width: 'fit-content', padding: 0, border: 0, background: 'transparent', color: 'var(--color-accent)', fontSize: 11, textAlign: 'left', cursor: onEvidenceSelect ? 'pointer' : 'default' }}
+            style={{ width: 'fit-content', padding: 0, border: 0, background: 'transparent', color: 'var(--color-accent-text)', fontSize: 11, textAlign: 'left', cursor: onEvidenceSelect ? 'pointer' : 'default' }}
           >
             View evidence · {evidence.factId ?? evidence.cropKey}
           </button>

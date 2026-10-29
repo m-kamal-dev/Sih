@@ -6,9 +6,9 @@ import { useUiStore } from '@/store/ui-store';
 export function PaletteButton() {
   const setPaletteOpen = useUiStore((s) => s.setPaletteOpen);
   return (
-    <button type="button" className="eg-icon-btn" onClick={() => setPaletteOpen(true)} aria-label="Search or jump to (Ctrl+K)">
+    <button type="button" className="eg-icon-btn" onClick={() => setPaletteOpen(true)} aria-keyshortcuts="Control+K" title="Search or jump to (Ctrl+K)">
       <Search size={14} aria-hidden />
-      <span className="eg-hide-narrow">Search or jump to</span>
+      <span>Search<span className="eg-hide-narrow"> or jump to</span></span>
       <kbd className="eg-kbd eg-hide-narrow" aria-hidden>Ctrl K</kbd>
     </button>
   );

@@ -12,5 +12,5 @@ Gate commands (pnpm.exe is blocked by Windows App Control on this machine, so us
 - [x] 6. Command palette (Ctrl+K), plain-language copy, tooltips on terms
 - [x] 7. Judge Mode (offline 3-minute guided demo + Reset)
 - [x] 8. /apply flow (checklist from rule pack, refs pending; per-file forensics + reader; one summary)
-- [ ] Proof: Playwright smoke test (console errors + axe) + full gate run
-- [ ] Pending fix: re-run axe e2e after accent darkening (#4C5AF0) + palette label change
+- [x] Proof: e2e/smoke.spec.ts (all routes + Apply + Live Check; console/page errors, failed requests, axe any impact). 38/38 e2e pass on prod build, rules-only mode
+- [ ] Not run: cloud-mode e2e (no OLLAMA_API_KEY in .env.local)

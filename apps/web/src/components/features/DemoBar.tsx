@@ -41,7 +41,7 @@ export function DemoBar() {
 
   return (
     <div style={{ position: 'fixed', bottom: 0, left: 0, right: 0, height: 56, background: 'var(--color-overlay)', borderTop: '1px solid var(--color-border)', zIndex: 9000, display: 'flex', alignItems: 'center', padding: '0 16px', gap: 12 }}>
-      <button onClick={() => go(Math.max(demoStep - 1, 0))} disabled={demoStep === 0} style={{ background: 'none', border: '1px solid var(--color-border)', borderRadius: 6, padding: '4px 8px', cursor: demoStep === 0 ? 'not-allowed' : 'pointer', color: 'var(--color-text-muted)', opacity: demoStep === 0 ? 0.4 : 1 }}>
+      <button onClick={() => go(Math.max(demoStep - 1, 0))} aria-label="Previous beat" disabled={demoStep === 0} style={{ background: 'none', border: '1px solid var(--color-border)', borderRadius: 6, padding: '4px 8px', cursor: demoStep === 0 ? 'not-allowed' : 'pointer', color: 'var(--color-text-muted)', opacity: demoStep === 0 ? 0.4 : 1 }}>
         <ChevronLeft size={14} />
       </button>
 
@@ -52,7 +52,7 @@ export function DemoBar() {
             key={i}
             href={beat.href}
             onClick={() => setDemoStep(i)}
-            style={{ display: 'flex', alignItems: 'center', gap: 5, padding: '4px 10px', borderRadius: 20, border: 'none', cursor: 'pointer', background: i === demoStep ? 'var(--color-accent)' : 'var(--color-raised)', color: i === demoStep ? 'var(--color-canvas)' : 'var(--color-text-muted)', fontSize: 11, fontWeight: i === demoStep ? 700 : 400, whiteSpace: 'nowrap', transition: 'background 150ms ease, color 150ms ease', flexShrink: 0 }}
+            style={{ display: 'flex', alignItems: 'center', gap: 5, padding: '4px 10px', borderRadius: 20, border: 'none', cursor: 'pointer', background: i === demoStep ? 'var(--color-accent)' : 'var(--color-raised)', color: i === demoStep ? 'var(--color-accent-contrast)' : 'var(--color-text-muted)', fontSize: 11, fontWeight: i === demoStep ? 700 : 400, whiteSpace: 'nowrap', transition: 'background 150ms ease, color 150ms ease', flexShrink: 0 }}
           >
             <span style={{ fontFamily: 'var(--font-mono)' }}>{beat.time}</span>
             <span style={{ display: i === demoStep ? 'inline' : 'none' }}> · {beat.label}</span>
@@ -74,7 +74,7 @@ export function DemoBar() {
         Reset demo data
       </button>
 
-      <button onClick={() => go(Math.min(demoStep + 1, BEATS.length - 1))} disabled={demoStep === BEATS.length - 1} style={{ background: 'none', border: '1px solid var(--color-border)', borderRadius: 6, padding: '4px 8px', cursor: demoStep === BEATS.length - 1 ? 'not-allowed' : 'pointer', color: 'var(--color-text-muted)', opacity: demoStep === BEATS.length - 1 ? 0.4 : 1 }}>
+      <button onClick={() => go(Math.min(demoStep + 1, BEATS.length - 1))} aria-label="Next beat" disabled={demoStep === BEATS.length - 1} style={{ background: 'none', border: '1px solid var(--color-border)', borderRadius: 6, padding: '4px 8px', cursor: demoStep === BEATS.length - 1 ? 'not-allowed' : 'pointer', color: 'var(--color-text-muted)', opacity: demoStep === BEATS.length - 1 ? 0.4 : 1 }}>
         <ChevronRight size={14} />
       </button>
     </div>

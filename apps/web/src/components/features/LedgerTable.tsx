@@ -72,7 +72,7 @@ export function LedgerTable() {
   });
 
   if (isLoading) return <div style={{ padding: 24, display: 'flex', gap: 8, color: 'var(--color-text-muted)' }}><Spinner />Loading decision history…</div>;
-  if (error) return <div style={{ padding: 24, color: 'var(--color-alert)', fontSize: 13 }}>Could not load the decision history. <button onClick={() => refetch()} style={{ background: 'none', border: '1px solid var(--color-border)', borderRadius: 4, color: 'var(--color-text)', cursor: 'pointer' }}>Retry</button></div>;
+  if (error) return <div style={{ padding: 24, color: 'var(--color-danger-text)', fontSize: 13 }}>Could not load the decision history. <button onClick={() => refetch()} style={{ background: 'none', border: '1px solid var(--color-border)', borderRadius: 4, color: 'var(--color-text)', cursor: 'pointer' }}>Retry</button></div>;
 
   const { integrity, digest } = data ?? {};
 
@@ -139,7 +139,7 @@ export function LedgerTable() {
                       <button
                         onClick={() => tamperMutation.mutate(row.seq)}
                         disabled={tamperMutation.isPending}
-                        style={{ fontSize: 11, padding: '3px 8px', background: 'none', border: '1px dashed var(--color-alert)', borderRadius: 4, color: 'var(--color-alert)', cursor: 'pointer', opacity: tamperMutation.isPending ? 0.5 : 1 }}
+                        style={{ fontSize: 11, padding: '3px 8px', background: 'none', border: '1px dashed var(--color-alert)', borderRadius: 4, color: 'var(--color-danger-text)', cursor: 'pointer', opacity: tamperMutation.isPending ? 0.5 : 1 }}
                         title="Demo only — mutates this row's payload to break the chain"
                       >
                         Tamper

@@ -18,7 +18,7 @@ export function CypherDrawer() {
   return (
     <Dialog.Root open={open} onOpenChange={setOpen}>
       <Dialog.Trigger asChild>
-        <button style={{ display:'flex',alignItems:'center',gap:6,padding:'6px 12px',background:'var(--color-raised)',border:'1px solid var(--color-border)',borderRadius:6,color:'var(--color-accent)',fontSize:12,cursor:'pointer',fontFamily:'var(--font-mono)' }}>
+        <button style={{ display:'flex',alignItems:'center',gap:6,padding:'6px 12px',background:'var(--color-raised)',border:'1px solid var(--color-border)',borderRadius:6,color: 'var(--color-accent-text)',fontSize:12,cursor:'pointer',fontFamily:'var(--font-mono)' }}>
           <Terminal size={13} />CYPHER
         </button>
       </Dialog.Trigger>

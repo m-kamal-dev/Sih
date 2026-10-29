@@ -47,7 +47,7 @@ export function KeyboardShortcutsOverlay() {
               {SHORTCUTS.map((s) => (
                 <tr key={s.key} style={{ borderBottom:'1px solid var(--color-border)' }}>
                   <td style={{ padding:'6px 0',width:80 }}>
-                    <kbd style={{ fontFamily:'var(--font-mono)',fontSize:12,background:'var(--color-raised)',border:'1px solid var(--color-border)',borderRadius:4,padding:'2px 6px',color:'var(--color-accent)' }}>{s.key}</kbd>
+                    <kbd style={{ fontFamily:'var(--font-mono)',fontSize:12,background:'var(--color-raised)',border:'1px solid var(--color-border)',borderRadius:4,padding:'2px 6px',color: 'var(--color-accent-text)' }}>{s.key}</kbd>
                   </td>
                   <td style={{ padding:'6px 8px',fontSize:13,color:'var(--color-text-muted)' }}>{s.description}</td>
                 </tr>
