@@ -543,3 +543,8 @@
   .eg-landing-nav .eg-hide-narrow { display: none !important; }
   .eg-hero { min-height: 900px; }
 }
+
+@layer components {
+  @keyframes eg-spin { to { transform: rotate(360deg); } }
+  .eg-spin { animation: eg-spin 900ms linear infinite; }
+}

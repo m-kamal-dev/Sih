@@ -3,7 +3,7 @@ import { useEffect, useState } from 'react';
 import dynamic from 'next/dynamic';
 import Link from 'next/link';
 import { usePathname } from 'next/navigation';
-import { List, Network, Scale, BookOpen, BarChart2, Play, ScanSearch, ChevronLeft, ChevronRight, Home } from 'lucide-react';
+import { List, Network, Scale, BookOpen, BarChart2, Play, ScanSearch, ChevronLeft, ChevronRight, Home, FilePlus2 } from 'lucide-react';
 import { useRoleStore } from '@/store/role-store';
 import { useUiStore } from '@/store/ui-store';
 import { useEffectsStore } from '@/store/effects-store';
@@ -22,6 +22,7 @@ const JudgeMode = dynamic(() => import('@/components/features/JudgeMode'), { ssr
 
 const NAV_ITEMS = [
   { href: '/queue', icon: List, label: 'Applications to review', roles: ['scrutiny_officer', 'senior_reviewer', 'rule_admin', 'auditor'] },
+  { href: '/apply', icon: FilePlus2, label: 'Check an application', roles: ['scrutiny_officer', 'senior_reviewer', 'rule_admin', 'auditor', 'applicant'] },
   { href: '/analyze', icon: ScanSearch, label: 'Check a document', roles: ['scrutiny_officer', 'senior_reviewer', 'rule_admin', 'auditor'] },
   { href: '/network', icon: Network, label: 'Linked institutions', roles: ['scrutiny_officer', 'senior_reviewer', 'rule_admin', 'auditor'] },
   { href: '/rules', icon: BookOpen, label: 'Rules', roles: ['rule_admin', 'auditor', 'scrutiny_officer'] },
@@ -95,7 +96,10 @@ export function AppShell({ children }: { children: React.ReactNode }) {
         </div>
         <nav style={{ flex: 1, padding: '10px 8px', display: 'flex', flexDirection: 'column', gap: 2 }}>
           {role === 'applicant' ? (
-            <NavLink href="/self-check/INTK-2026-0229" icon={List} label="Self-check" active={pathname.startsWith('/self-check')} collapsed={sidebarCollapsed} />
+            <>
+              <NavLink href="/self-check/INTK-2026-0229" icon={List} label="Self-check" active={pathname.startsWith('/self-check')} collapsed={sidebarCollapsed} />
+              <NavLink href="/apply" icon={FilePlus2} label="Check an application" active={pathname.startsWith('/apply')} collapsed={sidebarCollapsed} />
+            </>
           ) : (
             NAV_ITEMS.filter((n) => (n.roles as readonly string[]).includes(role)).map((item) => (
               <NavLink key={item.href} href={item.href} icon={item.icon} label={item.label} active={pathname.startsWith(item.href)} collapsed={sidebarCollapsed} />

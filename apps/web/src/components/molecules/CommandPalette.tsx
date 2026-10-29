@@ -21,6 +21,7 @@ interface Command {
 const PAGES: [string, string][] = [
   ['/', 'Home'],
   ['/queue', 'Applications to review'],
+  ['/apply', 'Check an application (institution)'],
   ['/analyze', 'Check a document (live)'],
   ['/network', 'Linked institutions'],
   ['/rules', 'Rules'],
