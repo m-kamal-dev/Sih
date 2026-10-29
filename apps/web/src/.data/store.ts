@@ -238,6 +238,9 @@ function getDatasetInternal(): Dataset {
   const dsRulesDir = getRulesDir();
   const dsRules = _patch.publishedRules.length > 0 ? _patch.publishedRules : loadRulePack(dsRulesDir);
   _ds = assembleDataset(dsRules);
+  // Seed the chain with the dataset's genesis rows (rule pack loaded, runs completed,
+  // letters drafted); persisted mutations are replayed on top of them below.
+  _ledger = _ds.ledger.map((row) => ({ ...row, payload: { ...row.payload } }));
 
   // Apply persisted (persisted-at restart) corrections first. This is the set of
   // corrections that survived a previous process restart; the in-flight corrections

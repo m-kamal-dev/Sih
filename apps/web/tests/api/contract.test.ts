@@ -686,3 +686,14 @@ describe('API Contract & Robustness Suite', () => {
     });
   });
 });
+
+describe('ledger genesis', () => {
+  it('starts with the dataset genesis rows, chained and verified', async () => {
+    const store = await import('@/.data/store');
+    store.resetToSeed();
+    const rows = store.getLedger();
+    expect(rows.length).toBeGreaterThan(0);
+    expect(rows[0]).toMatchObject({ seq: 1, action: 'rulepack.loaded', officer: 'DEMO-OFF-103', model: null });
+    expect(store.getVerifyResult()).toMatchObject({ ok: true, checked: rows.length });
+  });
+});
