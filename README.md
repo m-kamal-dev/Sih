@@ -2,6 +2,13 @@
 
 EvidenceGraph is a synthetic prototype of an evidence-linked validation layer beside the AICTE approval portal. It demonstrates configurable rules, cross-application checks, source verification states, human review and an audit ledger. It does not connect to AICTE or external issuer services.
 
+## Run it
+
+Double-click **START.cmd** in the project folder, or run `npm start` from it. The app builds itself only when the code changed, picks a free port from 3100, and opens your browser. Close the window (or press Ctrl+C) to stop.
+
+- `npm run dev`: development server with live reload
+- `npm run start:fresh`: force a rebuild first
+
 ## Run locally
 
 Requires Node.js 24 and pnpm 12.9.1 (the version in `package.json`). From the repository root:
