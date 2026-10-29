@@ -1,4 +1,5 @@
 'use client';
+import { LEDGER_ACTION_LABELS } from '@/lib/constants';
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 import { useState, useEffect } from 'react';
 import type { AuditRow } from '@evidencegraph/domain';
@@ -123,8 +124,8 @@ export function LedgerTable() {
                   <td style={{ padding: '8px 12px', fontFamily: 'var(--font-mono)', color: 'var(--color-text-muted)' }}>{row.seq}</td>
                   <td style={{ padding: '8px 12px' }}><Timestamp iso={row.at} mode="datetime" /></td>
                   <td style={{ padding: '8px 12px' }}><OfficerTag officerId={row.officer} actor={row.actor} /></td>
-                  <td style={{ padding: '8px 12px', fontFamily: 'var(--font-mono)', color: 'var(--color-text-muted)' }}>{row.model ?? 'rules only'}</td>
-                  <td style={{ padding: '8px 12px', color: 'var(--color-text)' }}>{row.action}</td>
+                  <td style={{ padding: '8px 12px', fontFamily: 'var(--font-mono)', color: 'var(--color-text-muted)', whiteSpace: 'nowrap' }}>{row.model ?? 'rules only'}</td>
+                  <td style={{ padding: '8px 12px', color: 'var(--color-text)' }} title={row.action}>{LEDGER_ACTION_LABELS[row.action] ?? row.action}</td>
                   <td style={{ padding: '8px 12px', color: 'var(--color-text-muted)' }}>{row.entity} · {row.entityId}</td>
                   <td style={{ padding: '8px 12px' }}>
                     <span style={{ display: 'flex', alignItems: 'center', gap: 4 }}>

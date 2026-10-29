@@ -3,8 +3,18 @@ import { create } from 'zustand';
 
 export type Theme = 'dark' | 'light';
 
+export const ACCENTS = [
+  { id: 'saffron', label: 'Saffron', swatch: 'linear-gradient(135deg, #F5A524, #FF6B3D)' },
+  { id: 'aurora', label: 'Aurora', swatch: 'linear-gradient(135deg, #4C5AF0, #22D3EE)' },
+  { id: 'jade', label: 'Jade', swatch: 'linear-gradient(135deg, #34D399, #22D3EE)' },
+  { id: 'mono', label: 'Mono', swatch: 'linear-gradient(135deg, #F4F4F5, #52525B)' },
+] as const;
+export type Accent = (typeof ACCENTS)[number]['id'];
+
 interface ThemeStore {
   theme: Theme;
+  accent: Accent;
+  setAccent: (accent: Accent) => void;
   init: () => void;
   setTheme: (theme: Theme, origin?: { x: number; y: number }) => void;
 }
@@ -25,7 +35,24 @@ function write(theme: Theme) {
  */
 export const useThemeStore = create<ThemeStore>((set) => ({
   theme: 'dark', // agrees with the SSR default to avoid a hydration mismatch
-  init: () => set({ theme: document.documentElement.getAttribute('data-theme') === 'light' ? 'light' : 'dark' }),
+  accent: 'saffron',
+  setAccent: (accent) => {
+    document.documentElement.setAttribute('data-accent', accent);
+    try {
+      localStorage.setItem('eg-accent', accent);
+    } catch {
+      /* session-only */
+    }
+    set({ accent });
+  },
+  init: () => {
+    const root = document.documentElement;
+    const stored = root.getAttribute('data-accent');
+    set({
+      theme: root.getAttribute('data-theme') === 'light' ? 'light' : 'dark',
+      accent: ACCENTS.find((a) => a.id === stored)?.id ?? 'saffron',
+    });
+  },
   setTheme: (theme, origin) => {
     const doc = document as Document & { startViewTransition?: (cb: () => void) => { ready: Promise<void> } };
     const calm = document.documentElement.getAttribute('data-effects') === 'off';

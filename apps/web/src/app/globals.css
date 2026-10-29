@@ -24,11 +24,11 @@
   --color-text-muted: #4A5470;
   --color-text-faint: #535D78;
 
-  --color-accent: #4338CA;          /* iris: primary actions, current state, links */
-  --color-accent-text: #4338CA;
-  --color-accent-weak: rgba(67, 56, 202, 0.09);
+  --color-accent: #A34A06;          /* saffron: primary actions, current state, links */
+  --color-accent-text: #A34A06;
+  --color-accent-weak: rgba(163, 74, 6, 0.09);
   --color-accent-contrast: #FFFFFF; /* text on accent fills */
-  --color-accent-2: #0E7490;        /* gradient partner (decorative only) */
+  --color-accent-2: #C2410C;        /* gradient partner (decorative only) */
 
   --color-danger: #DC2626;
   --color-danger-text: #B91C1C;
@@ -40,7 +40,7 @@
   --color-warn-weak: rgba(234, 179, 8, 0.16);
   --color-warn-contrast: #1F2937;
 
-  --color-ok: #15803D;
+  --color-ok: #166534;
   --color-violet: #6D28D9;
   --color-teal: #0F766E;
 
@@ -55,7 +55,7 @@
   --color-violation: #B91C1C;
 
   /* Verification statuses */
-  --color-verified: #15803D;
+  --color-verified: #166534;
   --color-mismatch: #B91C1C;
   --color-expired: #854D0E;
   --color-pending: #535D78;
@@ -99,11 +99,11 @@
   --color-text-muted: #A3ACC6;
   --color-text-faint: #8F99B6;
 
-  --color-accent: #4C5AF0;          /* white text on it is 5.0:1 (AA for small text) */
-  --color-accent-text: #A9B4FF;
-  --color-accent-weak: rgba(76, 90, 240, 0.18);
-  --color-accent-contrast: #FFFFFF;
-  --color-accent-2: #22D3EE;
+  --color-accent: #F5A524;
+  --color-accent-text: #FFC061;
+  --color-accent-weak: rgba(245, 165, 36, 0.14);
+  --color-accent-contrast: #1B1204;  /* dark text on the saffron fill: 9:1 */
+  --color-accent-2: #FF6B3D;
 
   --color-danger: #EF4444;
   --color-danger-text: #F87171;
@@ -138,6 +138,54 @@
   --color-alert: #EF4444;
 
   color-scheme: dark;
+}
+
+/*
+ * Accent presets ("Colour theme" picker). Saffron is the default (tokens above).
+ * Each preset overrides only the accent tokens, per theme, and is checked by
+ * scripts/check-contrast.ts like the base palette.
+ */
+[data-theme="dark"][data-accent="aurora"] {
+  --color-accent: #4C5AF0;
+  --color-accent-text: #A9B4FF;
+  --color-accent-weak: rgba(76, 90, 240, 0.18);
+  --color-accent-contrast: #FFFFFF;
+  --color-accent-2: #22D3EE;
+}
+[data-theme="light"][data-accent="aurora"] {
+  --color-accent: #4338CA;
+  --color-accent-text: #4338CA;
+  --color-accent-weak: rgba(67, 56, 202, 0.09);
+  --color-accent-contrast: #FFFFFF;
+  --color-accent-2: #0E7490;
+}
+[data-theme="dark"][data-accent="jade"] {
+  --color-accent: #34D399;
+  --color-accent-text: #6EE7B7;
+  --color-accent-weak: rgba(52, 211, 153, 0.14);
+  --color-accent-contrast: #022C1E;
+  --color-accent-2: #22D3EE;
+}
+[data-theme="light"][data-accent="jade"] {
+  --color-accent: #047857;
+  --color-accent-text: #047857;
+  --color-accent-weak: rgba(4, 120, 87, 0.09);
+  --color-accent-contrast: #FFFFFF;
+  --color-accent-2: #0E7490;
+}
+[data-theme="dark"][data-accent="mono"] {
+  --color-accent: #F4F4F5;
+  --color-accent-text: #E4E4E7;
+  --color-accent-weak: rgba(244, 244, 245, 0.10);
+  --color-accent-contrast: #09090B;
+  --color-accent-2: #A1A1AA;
+}
+[data-theme="light"][data-accent="mono"] {
+  --color-accent: #18181B;
+  --color-accent-text: #18181B;
+  --color-accent-weak: rgba(24, 24, 27, 0.07);
+  --color-accent-contrast: #FFFFFF;
+  --color-accent-2: #52525B;
 }
 
 /* Surface effects derived from tokens (not checked: decorative only). */
@@ -549,4 +597,47 @@
 @layer components {
   @keyframes eg-spin { to { transform: rotate(360deg); } }
   .eg-spin { animation: eg-spin 900ms linear infinite; }
+}
+
+/* ---------------- Polish layer ---------------- */
+@layer components {
+  .eg-accent-menu { position: absolute; right: 0; top: calc(100% + 8px); z-index: 80; min-width: 190px; padding: 6px; display: grid; gap: 2px; background: var(--color-overlay); }
+  .eg-accent-option {
+    display: flex; align-items: center; gap: 10px; width: 100%; padding: 9px 10px; border-radius: 10px; border: 0;
+    background: transparent; color: var(--color-text); font: 500 14px var(--font-sans); cursor: pointer; text-align: left;
+  }
+  .eg-accent-option:hover, .eg-accent-option:focus-visible { background: var(--color-accent-weak); }
+  .eg-accent-swatch { width: 18px; height: 18px; border-radius: 99px; box-shadow: 0 0 0 1px var(--color-border-strong), inset 0 1px 0 rgba(255,255,255,.35); }
+
+  /* Ambient light behind every product page, tinted by the active accent. */
+  .eg-shell main {
+    background:
+      radial-gradient(1200px 380px at 70% -120px, color-mix(in oklab, var(--color-accent) 11%, transparent), transparent 70%),
+      var(--color-canvas);
+  }
+  .eg-sidebar { background: linear-gradient(180deg, color-mix(in oklab, var(--color-accent) 5%, var(--color-surface)), var(--color-surface) 40%); }
+  .eg-topbar { backdrop-filter: blur(14px) saturate(140%); -webkit-backdrop-filter: blur(14px) saturate(140%); position: relative; z-index: 20; }
+  [data-effects="lite"] .eg-topbar, [data-effects="off"] .eg-topbar { backdrop-filter: none; background: var(--color-surface); }
+
+  /* Cards: hairline top highlight and an accent edge on hover for interactive ones. */
+  .eg-card, .eg-stat, .eg-tile, .eg-signal { box-shadow: var(--shadow-1), inset 0 1px 0 color-mix(in oklab, var(--color-text) 5%, transparent); }
+  .eg-tile:hover, .eg-sample:hover, .eg-guard:hover { box-shadow: var(--shadow-2), 0 0 0 1px color-mix(in oklab, var(--color-accent) 35%, transparent); }
+
+  .eg-btn-primary { position: relative; overflow: hidden; }
+  .eg-btn-primary::after {
+    content: ""; position: absolute; inset: 0; pointer-events: none;
+    background: linear-gradient(110deg, transparent 30%, rgba(255,255,255,.22) 50%, transparent 70%);
+    background-size: 250% 100%; background-position: 150% 0; transition: background-position 700ms var(--ease-enter);
+  }
+  .eg-btn-primary:hover::after { background-position: -50% 0; }
+
+  /* Shared page header for every product screen. */
+  .eg-page-head h1 { letter-spacing: -0.02em; }
+  .eg-page-head p { line-height: 1.6; }
+
+  /* Tables in product screens */
+  .eg-table { width: 100%; border-collapse: separate; border-spacing: 0; font-size: 13px; }
+  .eg-table th { position: sticky; top: 0; z-index: 1; text-align: left; padding: 10px 12px; font-size: 12px; font-weight: 600; letter-spacing: .04em; color: var(--color-text-muted); background: var(--color-surface); border-bottom: 1px solid var(--color-border); white-space: nowrap; }
+  .eg-table td { padding: 10px 12px; border-bottom: 1px solid var(--color-border); vertical-align: top; }
+  .eg-table tbody tr:hover td { background: var(--color-accent-weak); }
 }

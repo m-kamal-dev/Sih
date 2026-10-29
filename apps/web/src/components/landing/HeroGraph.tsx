@@ -38,7 +38,7 @@ function readPalette(): Palette {
   const css = getComputedStyle(document.documentElement);
   const v = (name: string, fallback: string) => css.getPropertyValue(name).trim() || fallback;
   return {
-    accent: v('--color-accent', '#5B6CFF'),
+    accent: v('--color-accent', '#F5A524'),
     accent2: v('--color-accent-2', '#22D3EE'),
     muted: v('--color-text-muted', '#A3ACC6'),
     line: v('--color-border-strong', '#39446A'),
@@ -252,7 +252,7 @@ export function HeroGraph() {
       glow = { accent: glowSprite(palette.accent), warn: glowSprite(palette.warn), alert: glowSprite(palette.alert) };
       if (level === 'off') draw(30);
     });
-    mo.observe(document.documentElement, { attributes: true, attributeFilter: ['data-theme'] });
+    mo.observe(document.documentElement, { attributes: true, attributeFilter: ['data-theme', 'data-accent'] });
 
     if (level === 'off') draw(30);
     else {

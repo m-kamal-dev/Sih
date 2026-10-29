@@ -6,7 +6,7 @@ import { useRouter } from 'next/navigation';
 import { Search, CornerDownLeft } from 'lucide-react';
 import type { ApplicationSummary } from '@evidencegraph/domain';
 import { useRoleStore } from '@/store/role-store';
-import { useThemeStore } from '@/store/theme-store';
+import { ACCENTS, useThemeStore } from '@/store/theme-store';
 import { useEffectsStore } from '@/store/effects-store';
 import { useJudgeStore } from '@/store/judge-store';
 
@@ -34,7 +34,7 @@ const PAGES: [string, string][] = [
 export default function CommandPalette({ open, onOpenChange }: { open: boolean; onOpenChange: (open: boolean) => void }) {
   const router = useRouter();
   const { role } = useRoleStore();
-  const { theme, setTheme } = useThemeStore();
+  const { theme, setTheme, accent, setAccent } = useThemeStore();
   const { userReduced, setUserReduced } = useEffectsStore();
   const startDemo = useJudgeStore((s) => s.start);
   const [query, setQuery] = useState('');
@@ -56,6 +56,7 @@ export default function CommandPalette({ open, onOpenChange }: { open: boolean; 
       ...PAGES.map(([href, label]): Command => ({ id: `go-${href}`, group: 'Go to', label, hint: href, run: () => { close(); router.push(href); } })),
       { id: 'demo', group: 'Actions', label: 'Start the 3-minute guided demo', run: () => { close(); startDemo(); } },
       { id: 'theme', group: 'Actions', label: theme === 'dark' ? 'Switch to light theme' : 'Switch to dark theme', run: () => { close(); setTheme(theme === 'dark' ? 'light' : 'dark'); } },
+      ...ACCENTS.filter((a) => a.id !== accent).map((a): Command => ({ id: `accent-${a.id}`, group: 'Actions', label: `Colour theme: ${a.label}`, run: () => { close(); setAccent(a.id); } })),
       { id: 'effects', group: 'Actions', label: userReduced ? 'Restore animation' : 'Reduce effects', run: () => { close(); setUserReduced(!userReduced); } },
       ...(summaries ?? []).map((s): Command => ({
         id: `app-${s.id}`, group: 'Applications', label: s.institution.name, hint: s.id,
@@ -65,7 +66,7 @@ export default function CommandPalette({ open, onOpenChange }: { open: boolean; 
     const q = query.trim().toLowerCase();
     if (!q) return [...list.filter((c) => c.group !== 'Applications'), ...list.filter((c) => c.group === 'Applications').slice(0, 6)];
     return list.filter((c) => c.label.toLowerCase().includes(q) || (c.hint ?? '').toLowerCase().includes(q));
-  }, [query, summaries, router, onOpenChange, startDemo, theme, setTheme, userReduced, setUserReduced]);
+  }, [query, summaries, router, onOpenChange, startDemo, theme, setTheme, accent, setAccent, userReduced, setUserReduced]);
 
   const current = Math.min(active, Math.max(0, commands.length - 1));
 

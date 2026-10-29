@@ -16,7 +16,7 @@ export function AiStatusPill() {
     <span
       className="eg-pill eg-hide-narrow"
       title={ai?.mode === 'ai' ? 'AI reads and explains. In cloud mode the visible document text is sent to the AI service; hidden text never is.' : 'No AI key is set. Every check still runs with the built-in rules.'}
-      style={{ color: ai?.mode === 'ai' ? 'var(--color-verified)' : 'var(--color-text-muted)', minWidth: 120 }}
+      style={{ color: ai?.mode === 'ai' ? 'var(--color-verified)' : 'var(--color-text-muted)', minWidth: 120, whiteSpace: 'nowrap' }}
     >
       <Cpu size={13} aria-hidden />
       {ai ? ai.label : 'Checking AI…'}

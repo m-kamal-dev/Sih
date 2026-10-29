@@ -83,9 +83,9 @@ export function QueueTable() {
                   <div style={{ fontSize:11,fontFamily:'var(--font-mono)',color:'var(--color-text-muted)' }}>{app.id}</div>
                 </td>
                 <td style={tdStyle}>
-                  <span style={{ fontSize:11,padding:'2px 6px',borderRadius:3,background:'var(--color-raised)',color:'var(--color-text-muted)' }}>{CATEGORY_LABELS[app.institution.category] ?? app.institution.category}</span>
+                  <span style={{ fontSize:11,padding:'2px 8px',borderRadius:99,background:'var(--color-raised)',color:'var(--color-text-muted)',whiteSpace:'nowrap' }}>{CATEGORY_LABELS[app.institution.category] ?? app.institution.category}</span>
                 </td>
-                <td style={{ ...tdStyle,color:'var(--color-text-muted)',fontSize:12 }}>{app.institution.region}</td>
+                <td style={{ ...tdStyle,color:'var(--color-text-muted)',fontSize:12,whiteSpace:'nowrap' }}>{app.institution.region}</td>
                 {role !== 'applicant' && (
                   <td style={tdStyle}>
                     <div style={{ display:'flex',alignItems:'center',gap:6 }}>

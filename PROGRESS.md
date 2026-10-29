@@ -14,3 +14,11 @@ Gate commands (pnpm.exe is blocked by Windows App Control on this machine, so us
 - [x] 8. /apply flow (checklist from rule pack, refs pending; per-file forensics + reader; one summary)
 - [x] Proof: e2e/smoke.spec.ts (all routes + Apply + Live Check; console/page errors, failed requests, axe any impact). 38/38 e2e pass on prod build, rules-only mode
 - [ ] Not run: cloud-mode e2e (no OLLAMA_API_KEY in .env.local)
+
+## Round 2 (colour + polish)
+- [x] Saffron default theme + live colour picker (Saffron, Aurora, Jade, Mono), light + dark
+- [x] Contrast checker rewritten: the old one never checked text tokens (destructuring bug); now checks 8 palettes, button text 4.5:1
+- [x] Fixed: Decision history started empty (genesis rows were dropped); test added
+- [x] Plain language: rule titles + "APH reference pending", ledger action labels, document/fact labels, metric units
+- [x] Polish: ambient accent glow, card highlights, button sheen, unified page headers
+- [x] e2e: 38/38 on production build (E2E_BASE_URL lets it run on another port)

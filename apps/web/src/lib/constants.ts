@@ -86,3 +86,45 @@ export const CYPHER_REUSED_FDR = `// Reused FDR in the same session
 MATCH (f:FDR)<-[a:PLEDGED]-(i1:Institution), (f)<-[b:PLEDGED]-(i2:Institution)
 WHERE i1.aicte_id < i2.aicte_id AND a.session = b.session
 RETURN f.bank, i1.aicte_id, i2.aicte_id`;
+
+export const DOC_TYPE_LABELS: Record<string, string> = {
+  eoa_form: 'Approval form',
+  intake_form: 'Intake form',
+  new_programme_form: 'New programme form',
+  sale_deed: 'Sale deed',
+  fire_noc: 'Fire safety NOC',
+  building_completion_certificate: 'Building completion certificate',
+  faculty_roster: 'Faculty roster',
+  degree_certificate: 'Degree certificate',
+  fdr: 'FDR receipt',
+  trust_affidavit: 'Trust affidavit',
+  trust_registration: 'Trust registration',
+  floor_plan: 'Floor plan',
+  lab_photo: 'Lab photo',
+  classroom_photo: 'Classroom photo',
+};
+
+/** Plain label for a document type code; falls back to a readable version of the code. */
+export function docTypeLabel(code: string): string {
+  return DOC_TYPE_LABELS[code] ?? code.replace(/_/g, ' ').replace(/^./, (c) => c.toUpperCase());
+}
+
+/** Plain label for a fact key such as "land.form_area" -> "Land · form area". */
+export function factKeyLabel(key: string): string {
+  const [group = '', ...rest] = key.split('.');
+  const head = (DOC_TYPE_LABELS[group] ?? group.replace(/_/g, ' ')).replace(/^./, (c) => c.toUpperCase());
+  return rest.length ? `${head} · ${rest.join(' ').replace(/_/g, ' ')}` : head;
+}
+
+export const LEDGER_ACTION_LABELS: Record<string, string> = {
+  'rulepack.loaded': 'Rule pack loaded',
+  'run.completed': 'Checks completed',
+  'letter.drafted': 'Letter drafted (not sent)',
+  'letter.updated': 'Letter edited',
+  'letter.released': 'Letter released',
+  'finding.accept': 'Signal accepted',
+  'finding.dismiss': 'Signal dismissed',
+  'finding.escalate': 'Signal escalated',
+  'fact.corrected': 'Reading corrected by officer',
+  'rules.published': 'Rules published',
+};

@@ -19,7 +19,7 @@ export const viewport: Viewport = {
 
 export default function RootLayout({ children }: { children: React.ReactNode }) {
   return (
-    <html lang="en" suppressHydrationWarning data-theme="dark" data-effects="full">
+    <html lang="en" suppressHydrationWarning data-theme="dark" data-accent="saffron" data-effects="full">
       <head>
         {/* Applied pre-paint: dark theme by default, effects tier from device hints. */}
         <script dangerouslySetInnerHTML={{ __html: PREPAINT_SCRIPT }} />

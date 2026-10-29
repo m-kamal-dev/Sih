@@ -39,7 +39,7 @@ export function MetricsBoard() {  const { role } = useRoleStore();
         <StatCard label="False Positive Rate" value={fmtPercent(metrics.falsePositiveRate)} color={metrics.falsePositiveRate === 0 ? 'var(--color-verified)' : 'var(--color-alert)'} note="High-severity flags on clean controls" />
         <StatCard label="Verification Coverage" value={fmtPercent(metrics.verificationCoverage)} color="var(--color-accent)" note="Share of fields checked with an issuer" />
         <StatCard label="Explainability Coverage" value={fmtPercent(metrics.explainabilityCoverage)} color="var(--color-ok)" note="Findings with resolvable evidence" />
-        <StatCard label="Avg Time / Application" value={`${metrics.avgTimePerApplicationMinutes.toFixed(1)}m`} color="var(--color-text-muted)" note="Officer review time, simulated" />
+        <StatCard label="Average review time" value={metrics.avgTimePerApplicationMinutes >= 60 ? `${(metrics.avgTimePerApplicationMinutes / 60).toFixed(1)} h` : `${metrics.avgTimePerApplicationMinutes.toFixed(1)} min`} color="var(--color-text-muted)" note="Officer review time, simulated" />
         <StatCard label="Alert Latency (median)" value={`${metrics.alertLatencySeconds.median.toFixed(1)}s`} color="var(--color-text-muted)" note="Ingest to queue appearance" />
         <StatCard label="Alert Latency (p90)" value={`${metrics.alertLatencySeconds.p90.toFixed(1)}s`} color="var(--color-text-muted)" note="Ingest to queue appearance, slowest 10%" />
       </div>

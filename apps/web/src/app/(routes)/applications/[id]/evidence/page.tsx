@@ -1,4 +1,5 @@
 'use client';
+import { docTypeLabel } from '@/lib/constants';
 import { useEffect, useState } from 'react';
 import { useQuery } from '@tanstack/react-query';
 import { useRoleStore } from '@/store/role-store';
@@ -99,7 +100,7 @@ export default function EvidencePage() {
                   transition: 'background 120ms ease',
                 }}
               >
-                {d.docType}
+                {docTypeLabel(d.docType)}
               </button>
             ))}
           </div>

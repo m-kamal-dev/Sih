@@ -33,23 +33,26 @@ export function RulesAdmin() {
           Each rule runs automatically against every application pack. When a rule fails, the system opens a finding for officer review — it never blocks one by itself. Click a rule to see its condition and built-in tests.
         </span>
       </div>
-      <div style={{ display: 'flex', flexDirection: 'column', gap: 2 }}>
+      <div style={{ display: 'flex', flexDirection: 'column', gap: 10 }}>
         {rules.map((rule) => {
           const isExpanded = expanded.has(rule.id);
           return (
-            <div key={rule.id} style={{ background: 'var(--color-surface)', border: `1px solid ${rule.clauseConfirmed ? 'var(--color-border)' : 'var(--color-validity)'}`, borderRadius: 8, overflow: 'hidden' }}>
+            <div key={rule.id} className="eg-card" style={{ padding: 0, overflow: 'hidden', borderRadius: 14 }}>
               <button
                 onClick={() => setExpanded((s) => { const next = new Set(s); if (next.has(rule.id)) next.delete(rule.id); else next.add(rule.id); return next; })}
                 style={{ width: '100%', display: 'flex', alignItems: 'center', gap: 10, padding: '10px 14px', background: 'none', border: 'none', cursor: 'pointer', textAlign: 'left' }}
                 aria-expanded={isExpanded}
               >
                 {isExpanded ? <ChevronDown size={13} style={{ color: 'var(--color-text-muted)' }} /> : <ChevronRight size={13} style={{ color: 'var(--color-text-muted)' }} />}
-                <span style={{ fontFamily: 'var(--font-mono)', fontSize: 12, color: 'var(--color-ok)', width: 200, flexShrink: 0 }}>{rule.id}</span>
-                <span style={{ fontSize: 11, color: 'var(--color-text-muted)', width: 80 }}>v{rule.version}</span>
-                <span style={{ fontSize: 11, color: 'var(--color-text-faint)', flex: 1 }}>{rule.aphRef}</span>
+                <span style={{ flex: 1, minWidth: 0, display: 'flex', flexDirection: 'column', gap: 2 }}>
+                  <span style={{ fontSize: 14, fontWeight: 600, color: 'var(--color-text)' }}>{ruleTitle(rule.aphRef, rule.id)}</span>
+                  <span style={{ fontSize: 12, color: 'var(--color-text-muted)' }}>
+                    <span style={{ fontFamily: 'var(--font-mono)' }}>{rule.id}</span> · version {rule.version} · APH reference: {rule.clauseConfirmed ? rule.aphRef : 'pending'}
+                  </span>
+                </span>
                 <FindingChip findingClass={rule.onFail.class} />
                 {!rule.clauseConfirmed && (
-                  <span style={{ fontSize: 10, color: 'var(--color-validity)', padding: '1px 6px', border: '1px solid var(--color-validity)', borderRadius: 3 }}>UNCONFIRMED REF</span>
+                  <span style={{ fontSize: 11, fontWeight: 600, color: 'var(--color-validity)', padding: '2px 8px', border: '1px solid var(--color-validity)', borderRadius: 99, whiteSpace: 'nowrap' }}>Reference pending</span>
                 )}
               </button>
               {isExpanded && (
@@ -75,4 +78,11 @@ export function RulesAdmin() {
       </div>
     </div>
   );
+}
+
+/** Plain title from a rule reference like "[fill in: APH 2024-27 clause — fire safety NOC validity]". */
+function ruleTitle(aphRef: string, id: string): string {
+  const topic = aphRef.split('—')[1]?.replace(/[\]\s]+$/, '').trim();
+  const text = topic || id.replace(/_/g, ' ');
+  return text.charAt(0).toUpperCase() + text.slice(1);
 }

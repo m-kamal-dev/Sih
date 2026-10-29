@@ -10,6 +10,7 @@ import { useEffectsStore } from '@/store/effects-store';
 import { useJudgeStore } from '@/store/judge-store';
 import { RoleSwitcher } from '@/components/molecules/RoleSwitcher';
 import { ThemeToggle } from '@/components/molecules/ThemeToggle';
+import { AccentPicker } from '@/components/molecules/AccentPicker';
 import { EffectsToggle } from '@/components/molecules/EffectsToggle';
 import { KeyboardShortcutsOverlay } from '@/components/molecules/KeyboardShortcutsOverlay';
 import { BrandMark } from '@/components/atoms/BrandMark';
@@ -130,6 +131,7 @@ export function AppShell({ children }: { children: React.ReactNode }) {
             </button>
           )}
           <EffectsToggle />
+          <AccentPicker />
           <ThemeToggle />
           <RoleSwitcher />
         </header>

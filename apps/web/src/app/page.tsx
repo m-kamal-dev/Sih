@@ -6,6 +6,7 @@ import { BrandMark } from '@/components/atoms/BrandMark';
 import { PaletteButton } from '@/components/molecules/PaletteButton';
 import { DemoButton } from '@/components/molecules/DemoButton';
 import { ThemeToggle } from '@/components/molecules/ThemeToggle';
+import { AccentPicker } from '@/components/molecules/AccentPicker';
 import { EffectsToggle } from '@/components/molecules/EffectsToggle';
 import { getLandingStats } from '@/lib/landing-stats';
 
@@ -31,6 +32,7 @@ export default function LandingPage() {
           <Link href="/analyze" className="eg-btn eg-btn-ghost eg-hide-narrow">Live check</Link>
           <PaletteButton />
           <EffectsToggle compact />
+          <AccentPicker />
           <ThemeToggle />
         </nav>
       </header>
